@@ -1,0 +1,13 @@
+<% if product.errors.any? %><div class="md-card md-card--filled" role="alert"><h2>Review these fields</h2><ul><% product.errors.full_messages.each do |message| %><li><%= message %></li><% end %></ul></div><% end %>
+<%= form_with model: product, url: product.persisted? ? storefront_admin_product_path(product) : storefront_admin_products_path, class: "md-stack" do |form| %>
+  <div class="md-field"><%= form.label :name %><%= form.text_field :name, required: true, maxlength: 160 %></div>
+  <div class="md-field"><%= form.label :slug %><%= form.text_field :slug, required: true, maxlength: 160, pattern: "[a-z0-9]+(?:-[a-z0-9]+)*" %></div>
+  <div class="md-field"><%= form.label :sku, "SKU" %><%= form.text_field :sku, required: true, maxlength: 160 %></div>
+  <div class="md-field"><%= form.label :description %><%= form.text_area :description %></div>
+  <div class="md-field"><%= form.label :price_cents, "Price in integer cents" %><%= form.number_field :price_cents, required: true, min: 0, step: 1 %></div>
+  <div class="md-field"><%= form.label :currency, "ISO currency" %><%= form.text_field :currency, required: true, minlength: 3, maxlength: 3 %></div>
+  <div class="md-field"><%= form.label :position %><%= form.number_field :position, required: true, min: 0, step: 1 %></div>
+  <div class="md-field"><%= form.label :image, "Upload image" %><%= form.file_field :image, accept: "image/png,image/jpeg,image/webp,image/gif" %><p class="md-field__support">PNG, JPEG, WebP, or GIF; maximum 8 MB. Use either an upload or external URL.</p></div>
+  <div class="md-field"><%= form.label :image_url, "External image URL" %><%= form.url_field :image_url, placeholder: "https://" %><p class="md-field__support">Must use an exact HTTPS host in storefront_external_image_hosts. Rendered by the visitor's browser with referrer suppression; never fetched by the server.</p></div>
+  <div class="md-actions"><%= form.submit %><%= link_to "Cancel", product.persisted? ? storefront_admin_product_path(product) : storefront_admin_products_path, class: "md-button md-button--text" %></div>
+<% end %>

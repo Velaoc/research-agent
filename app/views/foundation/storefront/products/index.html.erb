@@ -1,0 +1,32 @@
+<% title "Shop" %>
+<section class="md-section" aria-labelledby="catalog-title">
+  <div class="md-section__inner">
+    <p class="md-section__eyebrow">Storefront</p>
+    <div class="storefront-heading-row">
+      <h1 id="catalog-title">Shop</h1>
+      <%= link_to "View cart", storefront_cart_path, class: "md-button md-button--tonal" %>
+    </div>
+    <% if @products.any? %>
+      <div class="storefront-product-grid">
+        <% @products.each do |product| %>
+          <article class="md-card md-card--outlined storefront-product-card">
+            <%= link_to storefront_product_path(product.slug), class: "storefront-product-card__image" do %>
+              <%= storefront_product_image(product, alt: product.description.presence || product.name) %>
+            <% end %>
+            <div class="md-stack storefront-product-card__body">
+              <div><h2><%= link_to product.name, storefront_product_path(product.slug) %></h2><p><%= truncate(product.description, length: 150) %></p></div>
+              <strong><%= storefront_money(product.price_cents, product.currency) %></strong>
+              <%= link_to "View product", storefront_product_path(product.slug), class: "md-button md-button--filled" %>
+            </div>
+          </article>
+        <% end %>
+      </div>
+      <nav class="md-actions" aria-label="Catalog pages">
+        <%= link_to "Previous", storefront_products_path(page: @page - 1), class: "md-button md-button--outlined" if @page > 1 %>
+        <%= link_to "Next", storefront_products_path(page: @page + 1), class: "md-button md-button--outlined" if @has_next_page %>
+      </nav>
+    <% else %>
+      <div class="md-card md-card--filled"><h2>No products are available</h2><p>Please check again later.</p></div>
+    <% end %>
+  </div>
+</section>

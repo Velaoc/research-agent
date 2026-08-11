@@ -1,0 +1,406 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+# bin/rename — stamp a product identity onto a freshly generated application.
+# This is the first command to run after creating an app from the template.
+#
+# Design contract, because an automated generator runs this on untrusted-ish
+# input and nothing else:
+#
+# * Plain Ruby. No Rails boot, no database, no network, no subprocess, and no
+#   shell anywhere in this file. Nothing is ever interpolated into a command
+#   line, an eval, or a template that becomes code.
+# * Every argument is validated against a per-field allowlist before anything
+#   is written. Characters outside the allowlist — which includes every shell
+#   metacharacter, every control character, and everything outside printable
+#   ASCII — are rejected, and a rejected run writes no file at all.
+# * Deterministic and idempotent: values are written to fixed, anchored
+#   locations, so running it twice with the same arguments leaves
+#   byte-identical files. Nothing outside the files listed by --help is
+#   touched.
+# * Every write is followed by a post-condition check that re-reads the
+#   result (YAML parse, marker extraction) and confirms the intended value
+#   actually landed.
+#
+# Exit codes: 0 success (including "nothing to change"), 1 invalid input or
+# an unexpected file layout.
+
+require "optparse"
+require "yaml"
+
+module Rename
+  class Error < StandardError; end
+
+  # Only printable ASCII may reach a file. This single gate removes control
+  # characters (including CR/LF header-injection payloads and NUL), bidi
+  # overrides, and homoglyph tricks before any field-specific rule runs.
+  PRINTABLE_ASCII = /\A[ -~]*\z/
+
+  # Rejected everywhere, purely so the error message is precise. The
+  # allowlists below already exclude all of these.
+  SHELL_METACHARACTERS = "`~!#$%^&*(){}[]|\\;\"<>?/".chars.freeze
+
+  DOMAIN_SOURCE = "[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?(?:\\.[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)+"
+
+  FIELDS = {
+    name: {
+      option: "--name",
+      key: "application_name",
+      max: 60,
+      pattern: /\A[A-Za-z0-9][A-Za-z0-9 '.-]{0,59}\z/,
+      allowed: "letters, digits, spaces, apostrophes, periods, and hyphens"
+    },
+    description: {
+      option: "--description",
+      key: "default_page_description",
+      max: 200,
+      pattern: /\A[A-Za-z0-9][A-Za-z0-9 ',.:-]{0,199}\z/,
+      allowed: "letters, digits, spaces, and , . : ' -"
+    },
+    domain: {
+      option: "--domain",
+      key: "domain",
+      max: 253,
+      downcase: true,
+      pattern: /\A#{DOMAIN_SOURCE}\z/,
+      allowed: "a bare DNS name such as example.com (no scheme, port, path, or trailing dot)"
+    },
+    support_email: {
+      option: "--support-email",
+      key: "support_email",
+      max: 254,
+      downcase: true,
+      pattern: /\A[a-z0-9._%+-]{1,64}@#{DOMAIN_SOURCE}\z/,
+      allowed: "a single mailbox such as support@example.com"
+    },
+    legal_email: {
+      option: "--legal-email",
+      key: "legal_email",
+      max: 254,
+      downcase: true,
+      pattern: /\A[a-z0-9._%+-]{1,64}@#{DOMAIN_SOURCE}\z/,
+      allowed: "a single mailbox such as legal@example.com"
+    }
+  }.freeze
+
+  MODULE_PATTERN = /\A[A-Z][A-Za-z0-9]{0,49}\z/
+
+  # Names that would shadow the foundation's own namespace, a framework
+  # constant, or the application class itself. Ruby core and stdlib constants
+  # are rejected separately through Object.const_defined?.
+  RESERVED_MODULES = %w[
+    Application Foundation Rails Current User Organization Admin Devise Pay Stripe Turbo
+    ActiveRecord ActiveSupport ActiveStorage ActiveJob ActionCable ActionController
+    ActionMailer ActionView ActionDispatch Madmin MissionControl OmniAuth PricingPlans
+    Profitable Sessions Allgood Propshaft Importmap Minitest Solid SolidQueue Test
+  ].freeze
+
+  README_START = "<!-- foundation:identity -->"
+  README_END = "<!-- /foundation:identity -->"
+
+  FOUNDATION_YML = "config/foundation.yml"
+  README = "README.md"
+  APPLICATION_RB = "config/application.rb"
+  MANIFEST_NOTE = "app/controllers/foundation/pwa_controller.rb"
+
+  NEXT_STEPS = [
+    "Billing: set STRIPE_PUBLIC_KEY, STRIPE_PRIVATE_KEY, STRIPE_SIGNING_SECRET and the plan price IDs.",
+    # foundation:module storefront
+    "Storefront: set STOREFRONT_STRIPE_SECRET_KEY, STOREFRONT_STRIPE_WEBHOOK_SECRET, STOREFRONT_STRIPE_MODE.",
+    # /foundation:module storefront
+    "OAuth: set GOOGLE_OAUTH_CLIENT_ID/SECRET and GITHUB_OAUTH_CLIENT_ID/SECRET, or remove those buttons.",
+    "Mail: set SMTP_ADDRESS, SMTP_PORT, SMTP_USERNAME/SMTP_PASSWORD, MAILER_FROM, and APP_HOST.",
+    "Storage: set ACTIVE_STORAGE_SERVICE to a cloud service in config/storage.yml.",
+    "Deploy: set servers, proxy.host, APP_HOST, and registry in config/deploy.yml; fill .kamal/secrets (see docs/DEPLOY.md).",
+    "Brand: set brand_seed_color in config/foundation.yml, then run bin/rails foundation:icon and regenerate tokens.",
+    "Legal: review every TODO-OPERATOR in the Terms and Privacy pages with counsel before launch.",
+    "Admin: promote the first operator from the console (User#admin?); there is no self-serve path."
+  ].freeze
+
+  # Validation ------------------------------------------------------------
+
+  def self.validate(kind, raw)
+    spec = FIELDS.fetch(kind)
+    option = spec.fetch(:option)
+    value = raw.to_s
+
+    raise Error, "#{option}: value is required" if value.empty?
+    unless PRINTABLE_ASCII.match?(value)
+      raise Error, "#{option}: only printable ASCII is accepted (control characters and non-ASCII text are rejected)"
+    end
+    raise Error, "#{option}: at most #{spec.fetch(:max)} characters (got #{value.length})" if value.length > spec.fetch(:max)
+    raise Error, "#{option}: leading or trailing whitespace is not allowed" if value != value.strip
+    raise Error, "#{option}: repeated spaces are not allowed" if value.include?("  ")
+
+    found = SHELL_METACHARACTERS.select { |character| value.include?(character) }
+    raise Error, "#{option}: shell metacharacters are not allowed (#{found.join(' ')})" if found.any?
+
+    value = value.downcase if spec[:downcase]
+    raise Error, "#{option}: expected #{spec.fetch(:allowed)}" unless spec.fetch(:pattern).match?(value)
+
+    value
+  end
+
+  def self.validate_module(raw)
+    value = raw.to_s
+
+    raise Error, "--module: value is required" if value.empty?
+    unless PRINTABLE_ASCII.match?(value) && MODULE_PATTERN.match?(value)
+      raise Error, "--module: expected a CamelCase Ruby constant such as AcmeShop"
+    end
+    if RESERVED_MODULES.include?(value) || Object.const_defined?(value)
+      raise Error, "--module: #{value} is already a known constant; choose another module name"
+    end
+
+    value
+  end
+
+  # Derives a module name from an already-validated product name, for
+  # "--module auto". The result goes through the same constant check as an
+  # explicitly supplied one.
+  def self.derive_module(name)
+    candidate = name.gsub(/[^A-Za-z0-9 ]/, " ").split.map { |word| word[0].upcase + word[1..].to_s }.join
+
+    raise Error, "--module: cannot derive a constant from #{name.inspect}; pass --module explicitly" unless MODULE_PATTERN.match?(candidate)
+
+    validate_module(candidate)
+  end
+
+  # File transforms -------------------------------------------------------
+
+  class Stamper
+    attr_reader :root, :values, :module_name, :changes
+
+    def initialize(root:, values:, module_name: nil)
+      @root = root
+      @values = values
+      @module_name = module_name
+      @changes = {}
+    end
+
+    def path(relative)
+      File.join(root, relative)
+    end
+
+    def read(relative)
+      file = path(relative)
+      raise Error, "#{relative} is missing under #{root}; run this from a generated application" unless File.file?(file)
+
+      # Explicit UTF-8: Docker/CI/cron often have no LANG, and a bare
+      # File.read then inherits US-ASCII and crashes on the non-ASCII README.
+      File.read(file, encoding: "UTF-8")
+    end
+
+    # Builds every replacement in memory and checks each post-condition
+    # before a single byte is written.
+    def plan
+      original_yaml = read(FOUNDATION_YML)
+      updated_yaml = values.reduce(original_yaml) do |source, (kind, value)|
+        replace_scalar(source, FIELDS.fetch(kind).fetch(:key), value)
+      end
+      @identity = verify_yaml(updated_yaml)
+      record(FOUNDATION_YML, original_yaml, updated_yaml)
+
+      original_readme = read(README)
+      record(README, original_readme, replace_identity_block(original_readme))
+
+      if module_name
+        original_application = read(APPLICATION_RB)
+        record(APPLICATION_RB, original_application, replace_module(original_application))
+      end
+
+      self
+    end
+
+    def write!
+      changes.each { |relative, content| File.write(path(relative), content, encoding: "UTF-8") }
+    end
+
+    def identity
+      @identity ||= {}
+    end
+
+    def previous_module
+      @previous_module ||= read(APPLICATION_RB)[/^module ([A-Z][A-Za-z0-9]*)$/, 1]
+    end
+
+    private
+
+    def record(relative, original, updated)
+      @changes[relative] = updated if original != updated
+    end
+
+    def replace_scalar(source, key, value)
+      pattern = /^(\ {2}#{Regexp.escape(key)}:)[^\n]*$/
+      occurrences = source.scan(pattern).length
+      raise Error, "#{FOUNDATION_YML}: expected exactly one \"#{key}:\" entry, found #{occurrences}" unless occurrences == 1
+
+      # The value is allowlisted, so it contains no quote, backslash, or
+      # newline that could escape this scalar. verify_yaml re-reads the file
+      # afterwards and proves it.
+      source.sub(pattern) { "#{Regexp.last_match(1)} \"#{value}\"" }
+    end
+
+    def verify_yaml(source)
+      parsed = YAML.safe_load(source, aliases: true)
+      shared = parsed.is_a?(Hash) ? parsed["shared"] : nil
+      raise Error, "#{FOUNDATION_YML}: expected a top-level \"shared\" mapping" unless shared.is_a?(Hash)
+
+      values.each do |kind, value|
+        key = FIELDS.fetch(kind).fetch(:key)
+        raise Error, "#{FOUNDATION_YML}: #{key} did not take the new value" unless shared[key] == value
+      end
+
+      shared
+    rescue Psych::Exception => error
+      raise Error, "#{FOUNDATION_YML}: refusing to write invalid YAML (#{error.class})"
+    end
+
+    def replace_identity_block(source)
+      unless source.scan(README_START).length == 1 && source.scan(README_END).length == 1
+        raise Error, "#{README}: expected exactly one #{README_START} ... #{README_END} block"
+      end
+
+      block = identity_block
+      updated = source.sub(/#{Regexp.escape(README_START)}.*?#{Regexp.escape(README_END)}/m) { block }
+      raise Error, "#{README}: identity block did not take the new values" unless updated.include?(block)
+
+      updated
+    end
+
+    # Rendered from the stamped configuration rather than from the arguments,
+    # so a run that changes only one field still produces a consistent block.
+    def identity_block
+      [
+        README_START,
+        "# #{identity["application_name"]}",
+        "",
+        identity["default_page_description"].to_s,
+        "",
+        "- Site: https://#{identity["domain"]}",
+        "- Support: #{identity["support_email"]}",
+        README_END
+      ].join("\n")
+    end
+
+    def replace_module(source)
+      current = previous_module
+      raise Error, "#{APPLICATION_RB}: could not find the application module declaration" if current.nil?
+      return source if current == module_name
+
+      updated = source.sub(/^module #{Regexp.escape(current)}$/) { "module #{module_name}" }
+      raise Error, "#{APPLICATION_RB}: module rename did not apply" unless updated.match?(/^module #{Regexp.escape(module_name)}$/)
+
+      updated
+    end
+  end
+
+  # Command line ----------------------------------------------------------
+
+  class CLI
+    def self.call(argv, out: $stdout, err: $stderr)
+      new(argv, out: out, err: err).call
+    end
+
+    def initialize(argv, out:, err:)
+      @argv = argv
+      @out = out
+      @err = err
+      @values = {}
+      @module_name = nil
+      @root = File.expand_path("..", __dir__)
+      @check = false
+      @quiet = false
+      @help = false
+      @derive_module = false
+    end
+
+    def call
+      parse!
+      stamper = Stamper.new(root: @root, values: @values, module_name: @module_name).plan
+      report(stamper)
+      stamper.write! unless @check
+      0
+    rescue Error => error
+      @err.puts("bin/rename: #{error.message}")
+      1
+    rescue OptionParser::ParseError => error
+      @err.puts("bin/rename: #{error.message}")
+      @err.puts("bin/rename: run with --help for usage")
+      1
+    end
+
+    private
+
+    def parser
+      OptionParser.new do |opts|
+        opts.banner = "Usage: bin/rename --name NAME [options]"
+        opts.separator ""
+        opts.separator "Stamps a product identity across #{FOUNDATION_YML} and #{README}."
+        opts.separator "The web app manifest and page metadata read that configuration at"
+        opts.separator "runtime (#{MANIFEST_NOTE}), so they follow automatically."
+        opts.separator ""
+        opts.on("--name NAME", "Product name (required)") { |value| @values[:name] = Rename.validate(:name, value) }
+        opts.on("--description TEXT", "Default page description") { |value| @values[:description] = Rename.validate(:description, value) }
+        opts.on("--domain DOMAIN", "Canonical domain, no scheme") { |value| @values[:domain] = Rename.validate(:domain, value) }
+        opts.on("--support-email EMAIL", "Support mailbox") { |value| @values[:support_email] = Rename.validate(:support_email, value) }
+        opts.on("--legal-email EMAIL", "Legal mailbox") { |value| @values[:legal_email] = Rename.validate(:legal_email, value) }
+        opts.on("--module NAME", "Rename the Ruby application module in #{APPLICATION_RB}; \"auto\" derives it from --name") do |value|
+          @module_name = value == "auto" ? nil : Rename.validate_module(value)
+          @derive_module = value == "auto"
+        end
+        opts.on("--root DIR", "Application root (defaults to this repository)") { |value| @root = expand_root(value) }
+        opts.on("--check", "Report what would change and write nothing") { @check = true }
+        opts.on("--quiet", "Print nothing on success") { @quiet = true }
+        opts.on("-h", "--help", "Show this message") { @help = true }
+      end
+    end
+
+    def parse!
+      remaining = parser.parse(@argv)
+
+      if @help
+        @out.puts(parser.help)
+        throw :done, 0
+      end
+
+      raise Error, "unexpected argument #{remaining.first.inspect}" if remaining.any?
+      raise Error, "--name is required" unless @values.key?(:name)
+
+      @module_name = Rename.derive_module(@values.fetch(:name)) if @derive_module
+    end
+
+    def expand_root(value)
+      raise Error, "--root: only printable ASCII paths are accepted" unless PRINTABLE_ASCII.match?(value.to_s)
+
+      path = File.expand_path(value.to_s)
+      raise Error, "--root: #{path} is not a directory" unless File.directory?(path)
+
+      path
+    end
+
+    def report(stamper)
+      return if @quiet
+
+      @out.puts(@check ? "Planned changes (nothing written):" : "Stamped product identity:")
+      @values.each { |kind, value| @out.puts(format("  %-24s %s", FIELDS.fetch(kind).fetch(:key), value)) }
+      @out.puts(format("  %-24s %s", "module", @module_name)) if @module_name
+      @out.puts("")
+
+      if stamper.changes.empty?
+        @out.puts("  All target files already carry this identity; nothing to write.")
+      else
+        verb = @check ? "would update" : "updated"
+        stamper.changes.each_key { |relative| @out.puts("  #{verb} #{relative}") }
+      end
+      @out.puts("  derived at runtime from #{FOUNDATION_YML}: web app manifest, page titles, mail identity, legal pages")
+      @out.puts("")
+
+      @out.puts("Still required before launch (this script does none of it):")
+      NEXT_STEPS.each { |step| @out.puts("  - #{step}") }
+    end
+  end
+end
+
+status = catch(:done) { Rename::CLI.call(ARGV) }
+exit(status)

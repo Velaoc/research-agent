@@ -1,0 +1,6 @@
+<% title "Edit stage" %>
+<section class="md-page md-page--narrow md-stack">
+  <header><h1>Edit stage</h1></header>
+  <%= render "form", stage: @stage %>
+  <%= button_to "Delete stage", crm_pipeline_stage_path(@pipeline, @stage), method: :delete, class: "md-button md-button--text", form: { data: { turbo_confirm: "Delete this stage?" } } %>
+</section>

@@ -1,0 +1,33 @@
+<% title "Billing" %>
+
+<section class="md-page md-page--narrow md-stack">
+  <header>
+    <p class="md-section__eyebrow">Workspace settings</p>
+    <h1>Billing</h1>
+    <p class="text-md-on-surface-variant">Subscription and plan settings for <strong><%= @organization.name %></strong>.</p>
+  </header>
+
+  <article class="md-card md-card--elevated md-stack">
+    <div>
+      <p class="text-md-on-surface-variant">Current plan</p>
+      <h2><%= @billing.plan_name %></h2>
+    </div>
+    <span class="md-chip<%= " selected" if @billing.source_badge_selected? %>"><%= @billing.source_badge_label %></span>
+    <% @billing.status_badges.each do |badge| %>
+      <span class="md-chip<%= " selected" if badge[:selected] %>"><%= badge[:label] %></span>
+    <% end %>
+
+    <div class="md-actions">
+      <% if @billing.show_manage_subscription? %>
+        <%= button_to "Manage subscription", billing_portal_path, data: { turbo: false }, class: "md-button md-button--filled" %>
+      <% end %>
+      <% if @billing.show_compare_plans? %>
+        <%= link_to "Compare plans", pricing_path, class: "md-button md-button--outlined" %>
+      <% end %>
+    </div>
+
+    <% if (notice = @billing.mixed_assignment_notice) %>
+      <p class="text-md-on-surface-variant"><%= notice %></p>
+    <% end %>
+  </article>
+</section>

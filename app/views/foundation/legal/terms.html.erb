@@ -1,0 +1,194 @@
+<% identity = Rails.configuration.x.foundation %>
+<article class="mx-auto max-w-2xl space-y-6 leading-relaxed">
+  <header>
+    <h1 class="text-3xl font-semibold">Terms of Service</h1>
+    <p class="mt-2 text-sm text-md-on-surface-variant">
+      Version <%= Foundation::Legal.terms_label %>
+      &middot; Last updated <%= Foundation::Legal::TERMS_UPDATED_ON.iso8601 %>
+    </p>
+    <p class="mt-2 rounded-md border border-md-tertiary bg-md-tertiary-container px-4 py-3 text-sm text-md-on-tertiary-container">
+      TODO-OPERATOR: This document is a starting point written for a generic
+      template, not legal advice. Have qualified counsel review and adapt it
+      to your product, your jurisdiction, and your risk tolerance before
+      launch, then bump the version in <code>Foundation::Legal</code>.
+    </p>
+  </header>
+
+  <section>
+    <h2 class="text-xl font-semibold">1. Who we are</h2>
+    <p>
+      These Terms of Service (the "Terms") are an agreement between you and
+      the operator of <%= identity[:application_name] %> (the "Service").
+      <!-- TODO-OPERATOR: replace with the operator's legal name, entity type, and registered address. -->
+      The operator is identified as <strong>TODO-OPERATOR: legal entity name and
+      address</strong>. Questions about these Terms can be sent to
+      <%= mail_to identity[:legal_email], nil, class: "underline underline-offset-2" %>.
+    </p>
+  </section>
+
+  <section>
+    <h2 class="text-xl font-semibold">2. What the Service is</h2>
+    <p>
+      The Service is a web application reachable at
+      https://<%= identity[:domain] %> and at pages linked from it. It lets you
+      create an account, sign in, and use the features the operator makes
+      available to your account, which may include content, tools, and — where
+      the storefront is enabled — the ability to purchase products.
+    </p>
+    <p>
+      The Service evolves: features may be added, changed, or retired. Where a
+      change removes something you have paid for, Section 6 (Purchases) and
+      Section 8 (Termination) describe what happens to outstanding balances
+      and orders.
+    </p>
+  </section>
+
+  <section>
+    <h2 class="text-xl font-semibold">3. Accounts and eligibility</h2>
+    <p>
+      You must be at least 16 years old to create an account, or older where
+      the law of your residence sets a higher minimum for agreeing to terms
+      like these. <!-- TODO-OPERATOR: adjust the minimum age for your market and audience. -->
+      By creating an account you confirm that you meet this requirement.
+    </p>
+    <p>
+      You agree to provide a working email address, keep your credentials
+      secret, and tell us promptly at
+      <%= mail_to identity[:support_email], nil, class: "underline underline-offset-2" %>
+      if you believe your account has been accessed without your permission.
+      You are responsible for activity performed with your credentials until
+      you notify us. Accounts are for a single person; sharing one account
+      between several people, or registering with disposable email addresses,
+      is not permitted.
+    </p>
+  </section>
+
+  <section>
+    <h2 class="text-xl font-semibold">4. Acceptable use</h2>
+    <p>When using the Service you agree not to:</p>
+    <ul class="list-disc space-y-1 pl-6">
+      <li>break the law, or help anyone else break it;</li>
+      <li>probe, scan, overload, or attempt to bypass security or rate limits, including CAPTCHA or bot challenges;</li>
+      <li>scrape or bulk-collect content or personal data without written permission;</li>
+      <li>upload malware or content you have no right to share;</li>
+      <li>impersonate another person or misrepresent your affiliation;</li>
+      <li>harass, threaten, or defraud other users;</li>
+      <li>resell or white-label the Service without a separate agreement.</li>
+    </ul>
+    <p>
+      We may remove content or suspend accounts that we reasonably believe
+      violate this section, with notice where practical.
+    </p>
+  </section>
+
+  <section>
+    <h2 class="text-xl font-semibold">5. Your content and our IP</h2>
+    <p>
+      Content you submit stays yours. You grant the operator a worldwide,
+      non-exclusive license to host, copy, display, and process it solely to
+      run and improve the Service. This license ends when the content is
+      deleted, except for lawful backups kept for a limited time.
+    </p>
+    <p>
+      The Service itself — its software, design, trademarks, and content the
+      operator provides — belongs to the operator or its licensors. Open
+      source components remain governed by their own licenses. Except for
+      rights these Terms grant expressly, no rights in the Service are
+      transferred to you.
+    </p>
+  </section>
+
+  <section>
+    <h2 class="text-xl font-semibold">6. Purchases and refunds</h2>
+    <p>
+      Where the Service offers paid products or subscriptions, prices,
+      currency, and any recurring interval are shown at the point of purchase
+      and are charged through our payment processor. Amounts are computed by
+      the Service; the checkout page always shows the amount you will pay
+      before you confirm.
+    </p>
+    <p>
+      The template storefront supports digital goods only and collects no
+      shipping address. Inventory may represent limited licenses or service
+      capacity. <strong>TODO-OPERATOR:</strong> describe digital delivery
+      timing, access duration, support, applicable sales/VAT taxes, and any
+      regional sales restrictions. Do not offer shipped goods until you add
+      address collection, shipping charges, tax treatment, and appropriate
+      consumer terms.
+    </p>
+    <p>
+      <strong>TODO-OPERATOR:</strong> describe your actual refund and
+      cancellation policy here (statutory withdrawal rights in your market,
+      goodwill refunds, subscription proration, digital-goods exceptions).
+      Until replaced, the default is: refunds are granted where required by
+      law, and otherwise at the operator's reasonable discretion.
+    </p>
+  </section>
+
+  <section>
+    <h2 class="text-xl font-semibold">7. Legal assent and records</h2>
+    <p>
+      When you create an account you are asked to tick a box confirming that
+      you accept these Terms and the Privacy Policy. We record the document
+      versions you accepted, the time, and technical details of the request
+      (IP address and browser identification) so that both sides have a
+      reliable record of what was agreed and when.
+    </p>
+  </section>
+
+  <section>
+    <h2 class="text-xl font-semibold">8. Termination</h2>
+    <p>
+      You may delete your account at any time from your account settings; this
+      ends these Terms except for sections that by nature survive (IP,
+      disclaimers, liability, governing law). We may suspend or close accounts
+      that violate these Terms, create legal exposure, or have been inactive
+      for an extended period, giving advance notice by email where the reason
+      allows it. If we close your account without cause, we will refund any
+      prepaid, unused fees where required by law.
+    </p>
+  </section>
+
+  <section>
+    <h2 class="text-xl font-semibold">9. Disclaimers and liability</h2>
+    <p>
+      The Service is provided "as is" and "as available". To the extent the
+      law allows, the operator disclaims implied warranties of
+      merchantability, fitness for a particular purpose, and non-infringement,
+      and does not promise the Service will be uninterrupted or error-free.
+    </p>
+    <p>
+      To the extent the law allows, the operator's total liability for claims
+      arising out of these Terms is capped at the greater of the amount you
+      paid for the Service in the twelve months before the claim and fifty
+      euros/dollars, and neither side is liable for indirect or consequential
+      losses. Nothing in these Terms limits liability that cannot be limited
+      by law, such as liability for intent, gross negligence, or personal
+      injury.
+    </p>
+  </section>
+
+  <section>
+    <h2 class="text-xl font-semibold">10. Governing law</h2>
+    <p>
+      <strong>TODO-OPERATOR:</strong> set the governing law and venue for your
+      operation (for example: "These Terms are governed by the laws of ____,
+      and disputes are resolved by the courts of ____"). Mandatory consumer
+      protection rules of your users' home countries may still apply
+      regardless of this choice.
+    </p>
+  </section>
+
+  <section>
+    <h2 class="text-xl font-semibold">11. Changes to these Terms</h2>
+    <p>
+      We may update these Terms as the Service or the law changes. Each
+      version carries the identifier shown at the top of this page. For
+      material changes we will give at least 14 days' notice by email or an
+      in-product notice before the new version takes effect; continuing to use
+      the Service after that date means you accept the new version. If you do
+      not accept it, stop using the Service and delete your account. The
+      version you accepted at signup remains recorded on your account.
+    </p>
+  </section>
+</article>

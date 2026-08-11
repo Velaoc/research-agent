@@ -1,0 +1,34 @@
+<% title "Checkout" %>
+<section class="md-section"><div class="md-page md-page--narrow md-auth-card md-stack">
+  <% if @pending_order %>
+    <div class="storefront-simulation-banner" role="status"><strong>An order is already reserved</strong><p>Order <%= @pending_order.public_reference %> is holding inventory until <%= l(@pending_order.reservation_expires_at, format: :long) %>. Retrying will reuse this order and cannot reserve stock twice.</p></div>
+    <%= button_to "Retry secure checkout", storefront_checkout_retry_path, class: "md-button md-button--filled" %>
+    <%= link_to "View order status", storefront_order_path(@pending_order.public_reference, access_token: @pending_token), class: "md-button md-button--outlined" %>
+  <% else %>
+  <div><p class="md-section__eyebrow">Secure checkout</p><h1>Contact and consent</h1><p>This storefront is for digital goods; no shipping address is collected. Payment details are collected by Stripe. This application never receives or stores your card number or security code.</p></div>
+  <% if flash[:alert].present? %><div class="md-card md-card--filled" role="alert"><%= flash[:alert] %></div><% end %>
+  <%= form_with scope: :checkout, url: storefront_checkout_path, class: "md-stack" do |form| %>
+    <% if user_signed_in? %>
+      <div class="md-card md-card--filled"><strong>Receipt email</strong><p><%= current_user.email %></p><p>Your signed-in account will own this order.</p></div>
+    <% else %>
+      <div class="md-field"><%= form.label :email, "Email for receipt and order updates" %><%= form.email_field :email, required: true, autocomplete: "email", maxlength: 254 %></div>
+      <p>No account is required. We never attach an order to an account by matching its email.</p>
+    <% end %>
+    <%# The control span is what is actually visible: the real input is reduced
+        to 1px and transparent by the design system, so omitting it here left a
+        required checkbox with nothing to tick. Mirrors components/_choice,
+        which cannot be reused directly because this label carries links. %>
+    <label class="md-choice md-choice--checkbox">
+      <%= form.check_box :legal_assent, required: true %>
+      <span class="md-choice__control" aria-hidden="true"></span>
+      <span>I agree to the <%= link_to "Terms of Service", legal_terms_path, target: "_blank", rel: "noopener" %> and acknowledge the <%= link_to "Privacy Policy", legal_privacy_path, target: "_blank", rel: "noopener" %>.</span>
+    </label>
+    <% if Foundation.storefront_simulator? %>
+      <div class="storefront-simulation-banner" role="status"><strong>Preview simulation</strong><br>No money will move and no card details will be requested.</div>
+      <%= form.submit "Continue to payment simulation", class: "md-button md-button--filled" %>
+    <% else %>
+      <%= form.submit "Continue securely with Stripe", class: "md-button md-button--filled" %>
+    <% end %>
+  <% end %>
+  <% end %>
+</div></section>

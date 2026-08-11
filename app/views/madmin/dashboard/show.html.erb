@@ -1,0 +1,19 @@
+<% content_for :title, "Dashboard" %>
+
+<h1>Foundation administration</h1>
+<p>Review accounts, organizations, invitations, device sessions, and background jobs.</p>
+
+<%# foundation:module storefront %>
+<section aria-labelledby="storefront-admin-heading">
+  <h2 id="storefront-admin-heading">Storefront administration</h2>
+  <% if Foundation.storefront_enabled? %>
+    <p>
+      Manage <%= link_to "products", storefront_admin_products_path %>,
+      review <%= link_to "orders", storefront_admin_orders_path %>, and
+      audit <%= link_to "payment events", storefront_admin_payment_events_path %>.
+    </p>
+  <% else %>
+    <p>The storefront is disabled in <code>config/foundation.yml</code>; its product and order resources are hidden.</p>
+  <% end %>
+</section>
+<%# /foundation:module storefront %>

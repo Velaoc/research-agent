@@ -1,0 +1,9 @@
+<nav class="md-tabs" aria-label="<%= label %>" data-controller="foundation--tabs" data-action="keydown->foundation--tabs#navigate">
+  <% tabs.each do |tab| %>
+    <%= link_to tab.fetch(:label), tab.fetch(:href),
+          class: class_names("md-tab", active: tab[:active]),
+          aria: { current: tab[:active] ? "page" : nil },
+          tabindex: tab[:active] ? 0 : -1,
+          data: { foundation__tabs_target: "tab" } %>
+  <% end %>
+</nav>

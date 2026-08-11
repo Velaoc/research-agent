@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="light dark">
+    <meta name="supported-color-schemes" content="light dark">
+    <meta name="x-apple-disable-message-reformatting">
+    <title><%= message.subject %></title>
+    <!--[if mso]>
+    <noscript>
+      <xml>
+        <o:OfficeDocumentSettings>
+          <o:PixelsPerInch>96</o:PixelsPerInch>
+        </o:OfficeDocumentSettings>
+      </xml>
+    </noscript>
+    <![endif]-->
+    <style type="text/css">
+      /* Progressive enhancement only. Critical colours and type live inline. */
+      @media (prefers-color-scheme: dark) {
+        .mail-shell { background-color: <%= mail_color("surface", scheme: :dark) %> !important; }
+        .mail-card, .mail-content, .mail-footer { background-color: <%= mail_color("surface-container-lowest", scheme: :dark) %> !important; color: <%= mail_color("on-surface", scheme: :dark) %> !important; }
+        .mail-header { background-color: <%= mail_color("surface-container-low", scheme: :dark) %> !important; border-bottom-color: <%= mail_color("outline-variant", scheme: :dark) %> !important; }
+        .mail-footer { border-top-color: <%= mail_color("outline-variant", scheme: :dark) %> !important; color: <%= mail_color("on-surface-variant", scheme: :dark) %> !important; }
+      }
+    </style>
+  </head>
+  <body style="<%= mail_body_style %>">
+    <table role="presentation" class="mail-shell" width="100%" cellpadding="0" cellspacing="0" border="0" style="<%= mail_shell_style %>">
+      <tr>
+        <td align="center" style="<%= mail_css("padding" => "0") %>">
+          <table role="presentation" class="mail-card" width="560" cellpadding="0" cellspacing="0" border="0" style="<%= mail_card_style %>">
+            <tr>
+              <td class="mail-header" style="<%= mail_header_style %>">
+                <p style="<%= mail_brand_style %>"><%= mail_application_name %></p>
+              </td>
+            </tr>
+            <tr>
+              <td class="mail-content" style="<%= mail_content_style %>">
+                <%= yield %>
+              </td>
+            </tr>
+            <tr>
+              <td class="mail-footer" style="<%= mail_footer_style %>">
+                <p style="<%= mail_css("margin" => "0 0 8px", "color" => mail_color("on-surface-variant"), "font-family" => Foundation::MailerHelper::FONT_STACK, "font-size" => "12px", "line-height" => "16px") %>">
+                  Sent by <%= mail_application_name %>.
+                </p>
+                <p style="<%= mail_css("margin" => "0", "color" => mail_color("on-surface-variant"), "font-family" => Foundation::MailerHelper::FONT_STACK, "font-size" => "12px", "line-height" => "16px") %>">
+                  Questions? Contact
+                  <%= mail_text_link(mail_support_email, "mailto:#{mail_support_email}") %>.
+                </p>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>

@@ -1,0 +1,5 @@
+<p class="md-snackbar md-snackbar--<%= kind %>" role="<%= kind == :alert ? "alert" : "status" %>"
+     data-controller="foundation--snackbar" data-foundation--snackbar-timeout-value="<%= kind == :alert ? 8000 : 5000 %>">
+  <span><%= message %></span>
+  <button type="button" class="md-snackbar__close" aria-label="Dismiss message" data-action="foundation--snackbar#dismiss">Dismiss</button>
+</p>

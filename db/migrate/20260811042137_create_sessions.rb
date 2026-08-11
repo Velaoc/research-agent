@@ -1,0 +1,127 @@
+# frozen_string_literal: true
+
+# The Rails-8-shaped sessions table for a Devise app: one row = one signed-in
+# device lifecycle (`ended_at: nil` means live; history lives in
+# sessions_events). Deliberately the SAME base shape
+# `rails generate authentication` creates — so if you ever migrate from
+# Devise to Rails auth, your sessions table is already waiting.
+class CreateSessions < ActiveRecord::Migration[8.1]
+  def change
+    primary_key_type, foreign_key_type = primary_and_foreign_key_types
+
+    create_table :sessions, id: primary_key_type do |t|
+      # The Rails 8 authentication-generator base…
+      t.references :user, null: false, foreign_key: true, type: foreign_key_type
+      t.string :ip_address, limit: 45
+      t.text :user_agent # text, not string: native UAs overflow MySQL's varchar(255)
+
+      # Devise/Warden mode: SHA-256 of a random token whose raw value lives
+      # ONLY in the user's own session (OWASP: never persist raw session
+      # identifiers). The Warden adapter validates it on every request; only
+      # a matching token plus explicit lifecycle end may sign that device out.
+      t.string :token_digest
+
+      # The Warden scope ("user") — multi-scope Devise apps.
+      t.string :scope
+
+      # Adopted sessions (pre-gem logins that had no sessions token yet)
+      # get one deterministic owner+scope key. Normal sessions keep this
+      # NULL, so the unique index below constrains only adopted rows while
+      # staying portable across PostgreSQL, MySQL and SQLite.
+      t.string :adoption_key
+
+      # How this session started: password / oauth / google_one_tap /
+      # passkey / magic_link / otp / sso / token / unknown — plus the
+      # provider and per-method extras.
+      t.string :auth_method
+      t.string :auth_provider
+      t.send(json_column_type, :auth_detail)
+
+      # Parsed device intelligence — projections of the raw user_agent
+      # ("Chrome 137 on macOS", "MyApp 2.4.1 on Pixel 8 (Android 16)").
+      t.string :browser_name
+      t.string :browser_version
+      t.string :os_name
+      t.string :os_version
+      t.string :device_type   # desktop / smartphone / tablet / native_ios / native_android / bot / unknown
+      t.string :device_model  # "iPhone15,2", "Pixel 8" — when knowable
+      t.string :app_name      # Hotwire Native apps
+      t.string :app_version
+      t.string :app_build
+      t.send(json_column_type, :client_hints) # raw Sec-CH-UA* + X-Client-* headers, for re-parsing
+
+      # Approximate location via the trackdown gem (soft dependency).
+      t.string :country_code, limit: 2
+      t.string :country_name
+      t.string :city
+      t.string :region
+
+      # Browser continuity: a random id minted at login into a signed,
+      # long-lived cookie identifying the BROWSER INSTALL (never the user).
+      # Lets a repeat login from the same browser supersede its old row
+      # instead of stacking duplicate devices.
+      t.string :device_id, limit: 36
+
+      # The throttled activity touch (at most one write per config.touch_every).
+      t.datetime :last_seen_at
+      t.string :last_seen_ip, limit: 45
+
+      # Lifecycle state. v0.2 keeps rows as the source of truth instead of
+      # deleting them and asking events to act as tombstones. `ended_at: nil`
+      # is the live-device set; explicit ended_reason values are the only
+      # thing a Devise/Warden request is allowed to enforce.
+      t.datetime :ended_at
+      t.string :ended_reason
+      # The explicit index below keeps the generated name consistent across
+      # create-table and upgrade paths. `references` indexes by default, so
+      # disable that implicit index to avoid two identical indexes.
+      t.references :ended_by, polymorphic: true, type: foreign_key_type, index: false
+      t.send(json_column_type, :ended_metadata)
+
+      t.timestamps
+    end
+
+    add_index :sessions, :device_id
+    add_index :sessions, :token_digest, unique: true
+    add_index :sessions, :adoption_key, unique: true
+    add_index :sessions, :auth_method
+    add_index :sessions, :auth_provider
+    add_index :sessions, :country_code
+    add_index :sessions, :last_seen_at
+    add_index :sessions, :ended_at
+    add_index :sessions, :ended_reason
+    add_index :sessions, %i[ended_by_type ended_by_id]
+  end
+
+  private
+
+  # Honor the host's configured primary key type (uuid, string/ULID, bigint…).
+  # Reads the same setting `rails g model` uses, so an app generated with
+  # `config.generators { |g| g.orm :active_record, primary_key_type: :uuid }`
+  # gets uuid sessions tables and uuid foreign keys, automatically.
+  def primary_and_foreign_key_types
+    config = Rails.configuration.generators
+    setting = config.options[config.orm][:primary_key_type]
+    [ setting || :primary_key, reference_column_type(setting) ]
+  end
+
+  # Reference columns hold VALUES of the PK type, so the serial pseudo-types
+  # map to their plain integer equivalents — a `t.bigserial` reference would
+  # mint its own auto-increment sequence, which is exactly wrong for a
+  # foreign key. Everything else (uuid, string ULIDs, …) passes through.
+  def reference_column_type(setting)
+    case setting
+    when nil, :bigserial then :bigint
+    when :serial then :integer
+    else setting
+    end
+  end
+
+  # match? (not equality): PostGIS apps report adapter_name "PostGIS" and
+  # are PostgreSQL too.
+  def json_column_type
+    return :jsonb if connection.adapter_name.match?(/postg/i)
+
+    :json
+  end
+end

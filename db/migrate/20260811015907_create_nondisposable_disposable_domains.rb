@@ -1,0 +1,30 @@
+class CreateNondisposableDisposableDomains < ActiveRecord::Migration[8.1]
+  def change
+    primary_key_type, foreign_key_type = primary_and_foreign_key_types
+
+    create_table :nondisposable_disposable_domains, id: primary_key_type do |t|
+      t.string :name, null: false, index: { unique: true }
+
+      t.timestamps
+    end
+
+    reversible do |dir|
+      dir.up do
+        # Seed from the blocklist snapshot bundled with the gem so the app is
+        # protected immediately, before the first remote update runs.
+        # Guarded so this migration still runs if the gem is ever removed.
+        Nondisposable::DomainListUpdater.seed if defined?(Nondisposable::DomainListUpdater)
+      end
+    end
+  end
+
+  private
+
+  def primary_and_foreign_key_types
+    config = Rails.configuration.generators
+    setting = config.options[config.orm][:primary_key_type]
+    primary_key_type = setting || :primary_key
+    foreign_key_type = setting || :bigint
+    [ primary_key_type, foreign_key_type ]
+  end
+end

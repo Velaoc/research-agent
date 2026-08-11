@@ -1,0 +1,12 @@
+<%= render "foundation/crm/shared/errors", record: company %>
+<%= form_with model: company, url: company.persisted? ? crm_company_path(company) : crm_companies_path, class: "md-stack" do |form| %>
+  <div class="md-field"><%= form.label :name %><%= form.text_field :name, required: true, maxlength: 200 %></div>
+  <div class="md-field"><%= form.label :domain %><%= form.text_field :domain, maxlength: 253 %></div>
+  <div class="md-field"><%= form.label :website %><%= form.url_field :website, maxlength: 500 %></div>
+  <div class="md-field"><%= form.label :phone %><%= form.telephone_field :phone, maxlength: 60 %></div>
+  <div class="md-field"><%= form.label :industry %><%= form.text_field :industry, maxlength: 120 %></div>
+  <div class="md-actions">
+    <%= form.submit class: "md-button md-button--filled" %>
+    <%= link_to "Cancel", company.persisted? ? crm_company_path(company) : crm_companies_path, class: "md-button md-button--text" %>
+  </div>
+<% end %>

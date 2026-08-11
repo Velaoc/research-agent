@@ -1,0 +1,87 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+# bin/foundation-modules — list and omit generation-time modules.
+#
+# Plain Ruby. No Rails boot, no database, no network. Omission is filesystem
+# surgery on --root (default: cwd) and is reversible from git.
+#
+# Exit codes: 0 success, 1 invalid input or residue after omit.
+
+require "optparse"
+
+root = File.expand_path("..", __dir__)
+lib = File.join(root, "lib")
+$LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
+require "foundation/modules"
+
+module FoundationModulesCli
+  class Error < StandardError; end
+
+  def self.run(argv)
+    options = { root: Dir.pwd }
+    parser = OptionParser.new do |o|
+      o.banner = "Usage: bin/foundation-modules [options] COMMAND"
+      o.on("--root PATH", "Application root (default: cwd)") { |v| options[:root] = File.expand_path(v) }
+      o.on("-h", "--help", "Show help") do
+        put_help
+        return 0
+      end
+    end
+
+    # permute! accepts options before or after the subcommand.
+    parser.permute!(argv)
+    command = argv.shift
+    case command
+    when "list", nil
+      list(options[:root])
+      0
+    when "omit"
+      name = argv.shift
+      raise Error, "omit requires a module name (try: bin/foundation-modules list)" if name.nil? || name.empty?
+
+      result = Foundation::Modules.omit!(name, root: options[:root])
+      $stdout.puts("Omitted module #{name} under #{options[:root]}")
+      $stdout.puts("Removed #{result.removed_paths.length} paths; rewrote #{result.rewritten_files.length} files.")
+      result.removed_paths.each { |path| $stdout.puts("  - #{path}") }
+      result.rewritten_files.each { |path| $stdout.puts("  ~ #{path}") }
+      0
+    when "help"
+      put_help
+      0
+    else
+      raise Error, "unknown command #{command.inspect} (list, omit)"
+    end
+  rescue Foundation::Modules::Manifest::Error, Foundation::Modules::Omit::Error, Error => e
+    $stderr.puts("error: #{e.message}")
+    1
+  end
+
+  def self.list(root)
+    registry = Foundation::Modules.registry(root: root)
+    if registry.all.empty?
+      $stdout.puts("No modules declared under config/foundation/modules/")
+      return
+    end
+
+    registry.all.each do |manifest|
+      $stdout.puts("#{manifest.name}\tdefault=#{manifest.default}\t#{manifest.summary}")
+    end
+  end
+
+  def self.put_help
+    $stdout.puts(<<~HELP)
+      bin/foundation-modules — generation-time module composition
+
+        list                     List declared modules
+        omit NAME                Remove NAME from --root (default cwd)
+        --root PATH              Operate on PATH instead of cwd
+
+      Omission deletes owned paths, strips host markers, scrubs schema tables
+      and foundation.yml keys, then residue-scans. Reversible from git.
+      See docs/MODULES.md.
+    HELP
+  end
+end
+
+exit FoundationModulesCli.run(ARGV.dup) if $PROGRAM_NAME == __FILE__

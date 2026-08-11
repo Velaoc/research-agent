@@ -1,0 +1,13 @@
+Your order is complete
+
+Order <%= @order.public_reference %> has been fulfilled.
+<% @order.line_items.each do |item| %>
+<%= item.name %> x <%= item.quantity %> — <%= storefront_money(item.line_total_cents, item.currency) %>
+<% end %>
+Total: <%= storefront_money(@order.total_cents, @order.currency) %>
+
+View your receipt (private link, expires 24 hours after this receipt was issued):
+<%= storefront_order_url(@order.public_reference, access_token: @token) %>
+
+Terms: <%= legal_terms_url %>
+Privacy: <%= legal_privacy_url %>

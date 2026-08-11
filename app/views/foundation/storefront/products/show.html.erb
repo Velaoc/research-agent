@@ -1,0 +1,20 @@
+<% title @product.name %>
+<section class="md-section">
+  <div class="md-section__inner storefront-product-detail">
+    <div class="storefront-product-detail__image"><%= storefront_product_image(@product, alt: @product.description.presence || @product.name) %></div>
+    <div class="md-stack">
+      <%= link_to "Back to shop", storefront_products_path %>
+      <div><p class="md-section__eyebrow">Available</p><h1><%= @product.name %></h1></div>
+      <p><%= simple_format(@product.description, {}, wrapper_tag: "span") %></p>
+      <strong class="storefront-price"><%= storefront_money(@product.price_cents, @product.currency) %></strong>
+      <%= form_with url: items_storefront_cart_path(@product), class: "md-stack" do |form| %>
+        <div class="md-field">
+          <%= form.label :quantity, "Quantity" %>
+          <%= form.number_field :quantity, value: 1, min: 1, max: [10, @product.inventory_quantity].min, required: true, inputmode: "numeric" %>
+          <p class="md-field__support">Maximum 10 per item.</p>
+        </div>
+        <%= form.submit "Add to cart", class: "md-button md-button--filled" %>
+      <% end %>
+    </div>
+  </div>
+</section>

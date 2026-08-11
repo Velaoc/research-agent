@@ -1,0 +1,63 @@
+<% title "Opportunities" %>
+
+<section class="md-page md-stack">
+  <header class="md-actions" style="justify-content: space-between; align-items: flex-start; flex-wrap: wrap;">
+    <div>
+      <p class="md-section__eyebrow">CRM</p>
+      <h1>Opportunities</h1>
+    </div>
+    <%= link_to "New opportunity", new_crm_opportunity_path, class: "md-button md-button--filled" %>
+  </header>
+
+  <%= render "foundation/crm/shared/subnav" %>
+
+  <%= form_with url: crm_opportunities_path, method: :get, class: "md-actions", local: true do %>
+    <div class="md-field" style="flex: 1; min-width: 160px;">
+      <%= label_tag :q, "Search" %>
+      <%= text_field_tag :q, params[:q] %>
+    </div>
+    <div class="md-field">
+      <%= label_tag :status, "Status" %>
+      <%= select_tag :status, options_for_select([ [ "Any", "" ] ] + Foundation::Crm::Opportunity::STATUSES.map { |s| [ s.humanize, s ] }, params[:status]) %>
+    </div>
+    <div class="md-field">
+      <%= label_tag :stage_id, "Stage" %>
+      <%= select_tag :stage_id, options_from_collection_for_select(@stages, :id, :name, params[:stage_id]), include_blank: "Any" %>
+    </div>
+    <%= hidden_field_tag :mine, params[:mine] if params[:mine] == "1" %>
+    <%= submit_tag "Filter", class: "md-button md-button--tonal" %>
+  <% end %>
+
+  <div class="md-actions" style="flex-wrap: wrap;">
+    <%= crm_filter_link "All owners", crm_opportunities_path(q: params[:q], status: params[:status], stage_id: params[:stage_id]), active: params[:mine] != "1" %>
+    <%= crm_filter_link "Mine", crm_opportunities_path(q: params[:q], status: params[:status], stage_id: params[:stage_id], mine: "1"), active: params[:mine] == "1" %>
+  </div>
+
+  <div class="table-scroll">
+    <table>
+      <thead><tr><th>Name</th><th>Stage</th><th>Amount</th><th>Status</th><th>Owner</th><th></th></tr></thead>
+      <tbody>
+        <% @opportunities.each do |opportunity| %>
+          <tr>
+            <td><%= opportunity.name %></td>
+            <td><%= opportunity.pipeline_stage&.name %></td>
+            <td><%= crm_money(opportunity.amount_cents, opportunity.currency) %></td>
+            <td><%= opportunity.status.humanize %></td>
+            <td><%= crm_user_label(opportunity.owner) %></td>
+            <td><%= link_to "View", crm_opportunity_path(opportunity) %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+
+  <%
+    qs = []
+    qs << "q=#{ERB::Util.url_encode(params[:q])}" if params[:q].present?
+    qs << "status=#{ERB::Util.url_encode(params[:status])}" if params[:status].present?
+    qs << "stage_id=#{ERB::Util.url_encode(params[:stage_id])}" if params[:stage_id].present?
+    qs << "mine=1" if params[:mine] == "1"
+    base = qs.any? ? "#{crm_opportunities_path}?#{qs.join('&')}" : crm_opportunities_path
+  %>
+  <%= crm_pagination(base_path: base, page: @page, has_next: @has_next_page) %>
+</section>

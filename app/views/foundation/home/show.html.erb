@@ -1,0 +1,140 @@
+<% identity = Rails.configuration.x.foundation %>
+<% title identity[:default_page_title] %>
+
+<section class="md-hero" aria-labelledby="hero-title">
+  <div class="md-hero__inner">
+    <div>
+      <p class="md-section__eyebrow"><%= identity[:application_name] %></p>
+      <h1 id="hero-title">Accounts, workspaces, and billing — ready to extend.</h1>
+      <p><%= identity[:default_page_description] %> Authentication, organizations, plans, and a Material Design 3 shell ship as the core. Optional modules are present only when this build includes them.</p>
+      <div class="md-actions">
+        <% if user_signed_in? %>
+          <%= link_to "Open your workspace", organizations.organizations_path, class: "md-button md-button--filled" %>
+          <%= link_to "Manage billing", billing_path, class: "md-button md-button--outlined" %>
+        <% else %>
+          <%= link_to "Create an account", new_user_registration_path, class: "md-button md-button--filled" %>
+          <%= link_to "View plans", pricing_path, class: "md-button md-button--outlined" %>
+        <% end %>
+      </div>
+    </div>
+    <div class="md-hero__art" aria-hidden="true"><div class="md-hero__orb"></div></div>
+  </div>
+</section>
+
+<section class="md-section" aria-labelledby="capabilities-title">
+  <div class="md-section__inner">
+    <p class="md-section__eyebrow">In this build</p>
+    <h2 id="capabilities-title" class="md-section__heading">What ships with every application on this foundation.</h2>
+    <div class="md-grid">
+      <article class="md-card md-card--filled md-feature" data-capability="accounts">
+        <span class="md-feature__number" aria-hidden="true"><%= material_symbol(:person, size: 32) %></span>
+        <div>
+          <h3>Accounts and sign-in</h3>
+          <p>Email confirmation, lockout, OAuth linking without auto-merge, and step-up reauthentication before sensitive changes. Review and revoke your own devices from settings.</p>
+        </div>
+      </article>
+      <article class="md-card md-card--filled md-feature" data-capability="organizations">
+        <span class="md-feature__number" aria-hidden="true"><%= material_symbol(:workspaces, size: 32) %></span>
+        <div>
+          <h3>Organizations and roles</h3>
+          <p>Personal and shared workspaces with owner, admin, and member roles. Invitations use signed, expiring tokens; ownership transfer and leaving stay last-owner safe.</p>
+        </div>
+      </article>
+      <article class="md-card md-card--filled md-feature" data-capability="billing">
+        <span class="md-feature__number" aria-hidden="true"><%= material_symbol(:payments, size: 32) %></span>
+        <div>
+          <h3>Plans and billing</h3>
+          <p>Free, Pro, and Enterprise example tiers with Stripe Checkout, a customer portal, and manual plan assignment that takes precedence when operators need it.</p>
+        </div>
+      </article>
+      <article class="md-card md-card--filled md-feature" data-capability="design">
+        <span class="md-feature__number" aria-hidden="true"><%= material_symbol(:light_mode, size: 32) %></span>
+        <div>
+          <h3>Material Design 3</h3>
+          <p>Light and dark tokens from one brand seed, adaptive navigation, and a local Material Symbols subset — no icon CDN and no Node build in production.</p>
+        </div>
+      </article>
+      <article class="md-card md-card--filled md-feature" data-capability="security">
+        <span class="md-feature__number" aria-hidden="true"><%= material_symbol(:task_alt, size: 32) %></span>
+        <div>
+          <h3>Hardened defaults</h3>
+          <p>Host-header protection from the configured domain, branded transactional mail with inlined styles, confirmation resend that does not leak addresses, and health probes for database, queue, storage, and host headroom.</p>
+        </div>
+      </article>
+      <article class="md-card md-card--filled md-feature" data-capability="native">
+        <span class="md-feature__number" aria-hidden="true"><%= material_symbol(:open_in_new, size: 32) %></span>
+        <div>
+          <h3>Native shell contract</h3>
+          <p>Versioned path configuration, deep-link association documents, and native entry and auth handoff for a Hotwire Native shell — ordinary browsers never receive those routes.</p>
+        </div>
+      </article>
+      <%# foundation:module storefront %>
+      <% if Foundation.module_available?("storefront") %>
+        <article class="md-card md-card--filled md-feature" data-capability="storefront" data-module="storefront">
+          <span class="md-feature__number" aria-hidden="true"><%= material_symbol(:home, size: 32) %></span>
+          <div>
+            <h3>Guest-first storefront</h3>
+            <p>Catalog, cart, and checkout without an account. Amounts are priced server-side; fulfillment runs only through a verified Stripe webhook. Digital goods only.</p>
+          </div>
+        </article>
+      <% end %>
+      <%# /foundation:module storefront %>
+      <%# foundation:module crm %>
+      <% if Foundation.module_available?("crm") %>
+        <article class="md-card md-card--filled md-feature" data-capability="crm" data-module="crm">
+          <span class="md-feature__number" aria-hidden="true"><%= material_symbol(:account_circle, size: 32) %></span>
+          <div>
+            <h3>Organization CRM</h3>
+            <p>Contacts, companies, leads, opportunities, pipelines, tasks, tags, and a per-record activity timeline — scoped to the current organization on every query.</p>
+          </div>
+        </article>
+      <% end %>
+      <%# /foundation:module crm %>
+    </div>
+  </div>
+</section>
+
+<section class="md-section md-section--tonal" aria-labelledby="plans-title">
+  <div class="md-section__inner">
+    <p class="md-section__eyebrow">Simple plans</p>
+    <h2 id="plans-title" class="md-section__heading">Start with what fits today.</h2>
+    <div class="md-pricing-grid">
+      <% PricingPlans.plans.each do |plan| %>
+        <% cents = plan.metadata.dig(:prices, :month) %>
+        <article class="md-card <%= plan.highlighted? ? "md-card--elevated" : "md-card--outlined" %> md-price-card">
+          <% if plan.highlighted? %><span class="md-chip selected">Recommended</span><% end %>
+          <h3><%= plan.name %></h3>
+          <p><%= plan.description %></p>
+          <p class="md-price-card__price"><%= cents.zero? ? "Free" : number_to_currency(cents / 100.0, precision: 0) %><%= "/month" unless cents.zero? %></p>
+          <ul><% plan.bullets.first(3).each do |bullet| %><li><%= bullet %></li><% end %></ul>
+          <%= link_to "View #{plan.name}", pricing_path, class: "md-button #{plan.highlighted? ? "md-button--filled" : "md-button--outlined"}" %>
+        </article>
+      <% end %>
+    </div>
+  </div>
+</section>
+
+<section class="md-section" aria-labelledby="faq-title">
+  <div class="md-section__inner">
+    <p class="md-section__eyebrow">Questions, answered</p>
+    <h2 id="faq-title" class="md-section__heading">A straightforward place to begin.</h2>
+    <div class="md-faq">
+      <details>
+        <summary>Can I begin on the free plan?</summary>
+        <p>Yes. Create an account and move to another plan when your organization needs more. Billing changes that touch payment methods require a fresh identity confirmation.</p>
+      </details>
+      <details>
+        <summary>Can teammates share a workspace?</summary>
+        <p>Yes. Organization owners can invite people and choose owner, admin, or member for each person.</p>
+      </details>
+      <details>
+        <summary>Can I change plans later?</summary>
+        <p>Yes. Eligible organizations can compare plans and manage an active subscription from billing, or contact sales when a plan is not self-serve.</p>
+      </details>
+      <details>
+        <summary>How do I see where I am signed in?</summary>
+        <p>Open Devices in settings to list live sessions, mark the current one, and revoke any session you do not recognize.</p>
+      </details>
+    </div>
+  </div>
+</section>

@@ -1,0 +1,18 @@
+<%
+  errors = form.object.respond_to?(:errors) ? form.object.errors.full_messages_for(attribute) : []
+  described_by = [hint.present? ? "#{form.object_name}_#{attribute}_hint" : nil,
+    errors.any? ? "#{form.object_name}_#{attribute}_error" : nil].compact.join(" ")
+  method_name = "#{type}_field"
+  method_name = "text_field" unless form.respond_to?(method_name)
+%>
+<div class="md-field <%= "md-field--error" if errors.any? %>">
+  <%= form.label attribute, label, class: "md-field__label" %>
+  <%= form.public_send(method_name, attribute, **options,
+        class: class_names("md-field__input", options.delete(:class)),
+        aria: { invalid: errors.any?, describedby: described_by.presence }) %>
+  <% if errors.any? %>
+    <p class="md-field__support" id="<%= form.object_name %>_<%= attribute %>_error"><%= errors.to_sentence %></p>
+  <% elsif hint.present? %>
+    <p class="md-field__support" id="<%= form.object_name %>_<%= attribute %>_hint"><%= hint %></p>
+  <% end %>
+</div>

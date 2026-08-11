@@ -1,0 +1,30 @@
+<section class="mx-auto w-full max-w-md">
+  <h1 class="text-2xl font-semibold">Sign in</h1>
+
+  <%= form_for(resource, as: resource_name, url: session_path(resource_name), html: { class: "mt-6 space-y-5" }) do |f| %>
+    <div>
+      <%= f.label :email, class: "block text-sm font-medium" %>
+      <%= f.email_field :email, autofocus: true, autocomplete: "email", required: true,
+            class: "mt-1 block w-full rounded-md border border-md-outline px-3 py-2" %>
+    </div>
+
+    <div>
+      <%= f.label :password, class: "block text-sm font-medium" %>
+      <%= f.password_field :password, autocomplete: "current-password", required: true,
+            class: "mt-1 block w-full rounded-md border border-md-outline px-3 py-2" %>
+    </div>
+
+    <% if devise_mapping.rememberable? %>
+      <div class="flex items-center gap-2">
+        <%= f.check_box :remember_me, class: "size-4 rounded border-md-outline" %>
+        <%= f.label :remember_me, class: "text-sm" %>
+      </div>
+    <% end %>
+
+    <%= f.submit "Sign in", class: "w-full md-button md-button--filled" %>
+  <% end %>
+
+  <%= render "devise/shared/oauth_buttons" %>
+
+  <%= render "devise/shared/links" %>
+</section>

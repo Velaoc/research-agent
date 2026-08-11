@@ -1,0 +1,70 @@
+# Declaration for the guest-first digital storefront (SPEC M8).
+# Omission deletes owned paths and strips host markers; it does not run at boot.
+# Default is included: a foundation checkout with no omit step matches today's behaviour.
+name: storefront
+summary: Guest-first digital catalog, cart, checkout, and admin
+default: included
+
+paths:
+  - app/controllers/foundation/storefront
+  - app/controllers/foundation/admin/orders_controller.rb
+  - app/controllers/foundation/admin/payment_events_controller.rb
+  - app/controllers/foundation/admin/products_controller.rb
+  - app/helpers/foundation/storefront_helper.rb
+  - app/jobs/foundation/storefront
+  - app/mailers/foundation/storefront
+  - app/models/foundation/storefront
+  - app/services/foundation/storefront
+  - app/views/foundation/admin/orders
+  - app/views/foundation/admin/payment_events
+  - app/views/foundation/admin/products
+  - app/views/foundation/storefront
+  - config/initializers/storefront_readiness.rb
+  - db/migrate/20260811060001_create_storefront.rb
+  - db/migrate/20260811060002_bound_storefront_product_numbers.rb
+  - db/migrate/20260811060003_add_storefront_checkout_idempotency_and_throttling.rb
+  - docs/STOREFRONT.md
+  - lib/foundation/demo_seeds.rb
+  - test/fixtures/files/storefront_products.csv
+  - test/fixtures/files/storefront_products_partial.csv
+  - test/integration/storefront_admin_test.rb
+  - test/integration/storefront_flows_test.rb
+  - test/jobs/storefront_receipt_dispatch_test.rb
+  - test/lib/foundation/demo_seeds_test.rb
+  - test/mailers/storefront_order_mailer_test.rb
+  - test/models/storefront_models_test.rb
+  - test/services/storefront_checkout_services_test.rb
+  - test/services/storefront_csv_importer_test.rb
+  - test/system/storefront_guest_checkout_test.rb
+
+table_prefixes:
+  - storefront_
+
+config_keys:
+  - storefront_enabled
+  - storefront_fulfillment_mode
+  - storefront_commerce_legal_reviewed
+  - storefront_external_image_hosts
+
+residue_patterns:
+  - "Foundation::Storefront"
+  - "storefront_enabled"
+  - "storefront_fulfillment_mode"
+  - "storefront_commerce_legal_reviewed"
+  - "storefront_external_image_hosts"
+  - "storefront_orders"
+  - "storefront_admin_"
+  - "storefront_cart_path"
+  - "storefront_products_path"
+  - "storefront_checkout_path"
+  - "storefront_order_path"
+  - "storefront_simulate"
+  - "storefront_stripe_webhook"
+  - "STOREFRONT_STRIPE_"
+  - "create_storefront_product"
+  - "create_storefront_order"
+  - "module: \"foundation/storefront\""
+  - "foundation/storefront/"
+  - "scope \"storefront\""
+  - "path: \"admin/storefront\""
+  - ".storefront-"

@@ -1,0 +1,4 @@
+<%= tag.progress class: "md-progress", max: 100, value: value.present? ? value.to_i.clamp(0, 100) : nil,
+      aria: { label: label } do %>
+  <%= value.present? ? "#{value.to_i.clamp(0, 100)}%" : label %>
+<% end %>

@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="robots" content="noindex,nofollow">
+    <link rel="icon" href="/icon.svg" type="image/svg+xml">
+    <title><%= content_for?(:title) ? "#{yield(:title)} — " : "" %><%= Rails.configuration.x.foundation[:application_name] %> administration</title>
+    <%= csrf_meta_tags %>
+    <%= csp_meta_tag %>
+    <%= stylesheet_link_tag "tailwind", "data-turbo-track": "reload" %>
+    <%= javascript_importmap_tags %>
+  </head>
+
+  <body class="md-app" data-controller="foundation--theme">
+    <% identity = Rails.configuration.x.foundation %>
+    <a class="md-skip-link" href="#admin-content">Skip to admin content</a>
+    <header class="md-top-app-bar">
+      <div class="md-top-app-bar__inner">
+        <%= link_to main_app.root_path, class: "md-wordmark", aria: { label: "#{identity[:application_name]} home" } do %>
+          <span class="md-wordmark__mark" aria-hidden="true"></span>
+          <span><%= identity[:application_name] %> admin</span>
+        <% end %>
+        <div class="md-top-app-bar__actions">
+          <span class="md-user-label"><%= current_user.email %></span>
+          <button type="button" class="md-icon-button" aria-label="Change color theme"
+                  data-action="foundation--theme#cycle" data-foundation--theme-target="button">
+            <%= material_symbol(:light_mode, fill: true, class: "md-theme-icon", data: { foundation__theme_target: "icon" }) %>
+          </button>
+          <%= button_to "Sign out", main_app.destroy_user_session_path, method: :delete, class: "md-button md-button--text" %>
+        </div>
+      </div>
+    </header>
+
+    <div class="md-admin-shell">
+      <aside class="md-admin-nav" aria-label="Administration">
+        <nav>
+          <%= link_to "Dashboard", madmin_root_path, class: class_names("md-admin-nav__item", active: request.path == madmin_root_path) %>
+          <% Madmin.menu.render do |item| %>
+            <% if item.url %>
+              <%= link_to item.label, item.url, class: class_names("md-admin-nav__item", active: request.path.start_with?(item.url)) %>
+            <% else %>
+              <p class="md-admin-nav__label"><%= item.label %></p>
+            <% end %>
+            <% item.items.each do |child| %>
+              <%= link_to child.label, child.url, class: class_names("md-admin-nav__item", active: request.path.start_with?(child.url)) %>
+            <% end %>
+          <% end %>
+          <%# foundation:module storefront %>
+          <% if Foundation.storefront_enabled? %>
+            <p class="md-admin-nav__label">Storefront</p>
+            <%= link_to "Products", main_app.storefront_admin_products_path, class: class_names("md-admin-nav__item", active: request.path.start_with?("/admin/storefront/products")) %>
+            <%= link_to "Orders", main_app.storefront_admin_orders_path, class: class_names("md-admin-nav__item", active: request.path.start_with?("/admin/storefront/orders")) %>
+            <%= link_to "Payment events", main_app.storefront_admin_payment_events_path, class: class_names("md-admin-nav__item", active: request.path.start_with?("/admin/storefront/payment_events")) %>
+          <% end %>
+          <%# /foundation:module storefront %>
+          <%= link_to "Background jobs", main_app.admin_jobs_path, class: class_names("md-admin-nav__item", active: request.path.start_with?("/admin/jobs")) %>
+        </nav>
+      </aside>
+      <main id="admin-content" class="md-admin-main" tabindex="-1"><%= yield %></main>
+    </div>
+
+    <% if notice.present? || alert.present? %>
+      <div class="md-snackbar-region" aria-live="polite" aria-atomic="true">
+        <%= render "foundation/components/snackbar", message: notice, kind: :status if notice.present? %>
+        <%= render "foundation/components/snackbar", message: alert, kind: :alert if alert.present? %>
+      </div>
+    <% end %>
+  </body>
+</html>

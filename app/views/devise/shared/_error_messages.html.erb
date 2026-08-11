@@ -1,0 +1,14 @@
+<% if resource.errors.any? %>
+  <div role="alert" class="mb-6 rounded-md border border-md-error bg-md-error-container px-4 py-3 text-sm text-md-on-error-container">
+    <h2 class="font-medium">
+      <%= t("errors.messages.not_saved",
+            count: resource.errors.count,
+            resource: resource.class.model_name.human.downcase) %>
+    </h2>
+    <ul class="mt-2 list-disc pl-5">
+      <% resource.errors.full_messages.each do |message| %>
+        <li><%= message %></li>
+      <% end %>
+    </ul>
+  </div>
+<% end %>

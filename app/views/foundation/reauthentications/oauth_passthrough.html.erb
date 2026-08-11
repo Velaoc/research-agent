@@ -1,0 +1,14 @@
+<section class="mx-auto w-full max-w-md">
+  <h1 class="text-2xl font-semibold">Continue with <%= Foundation::Oauth.label(@provider) %></h1>
+  <p class="mt-3 text-sm text-md-on-surface-variant">
+    You will be asked to confirm with <%= Foundation::Oauth.label(@provider) %>.
+  </p>
+
+  <%= form_tag @authorize_path, method: :post, data: { turbo: false }, id: "sudo-oauth-continue" do %>
+    <%= submit_tag "Continue", class: "mt-6 w-full md-button md-button--filled" %>
+  <% end %>
+
+  <script>
+    document.getElementById("sudo-oauth-continue")?.requestSubmit?.()
+  </script>
+</section>

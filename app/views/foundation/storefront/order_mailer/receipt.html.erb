@@ -1,0 +1,27 @@
+<%= mail_heading "Your order is complete" %>
+
+<%= mail_paragraph do %>
+  Order <strong style="<%= mail_strong_style %>"><%= @order.public_reference %></strong> has been fulfilled.
+<% end %>
+
+<ul style="<%= mail_list_style %>">
+  <% @order.line_items.each do |item| %>
+    <li style="<%= mail_list_item_style %>"><%= item.name %> × <%= item.quantity %> — <%= storefront_money(item.line_total_cents, item.currency) %></li>
+  <% end %>
+</ul>
+
+<%= mail_paragraph do %>
+  <strong style="<%= mail_strong_style %>">Total: <%= storefront_money(@order.total_cents, @order.currency) %></strong>
+<% end %>
+
+<%= mail_button "View your receipt", storefront_order_url(@order.public_reference, access_token: @token) %>
+
+<%= mail_muted do %>
+  This private link expires 24 hours after this receipt was issued.
+<% end %>
+
+<%= mail_muted do %>
+  <%= mail_text_link "Terms of Service", legal_terms_url %>
+  ·
+  <%= mail_text_link "Privacy Policy", legal_privacy_url %>
+<% end %>

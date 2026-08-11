@@ -1,0 +1,13 @@
+<%
+  errors = form.object.respond_to?(:errors) ? form.object.errors.full_messages_for(attribute) : []
+  support_id = "#{form.object_name}_#{attribute}_support"
+%>
+<div class="md-field <%= "md-field--error" if errors.any? %>">
+  <%= form.label attribute, label, class: "md-field__label" %>
+  <%= form.select attribute, choices, {}, **options,
+        class: class_names("md-field__input md-field__select", options.delete(:class)),
+        aria: { invalid: errors.any?, describedby: (support_id if errors.any? || hint.present?) } %>
+  <% if errors.any? || hint.present? %>
+    <p class="md-field__support" id="<%= support_id %>"><%= errors.any? ? errors.to_sentence : hint %></p>
+  <% end %>
+</div>

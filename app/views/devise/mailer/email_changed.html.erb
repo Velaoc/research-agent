@@ -1,0 +1,17 @@
+<%= mail_heading "Email address updated" %>
+
+<%= mail_paragraph do %>
+  Hello <%= @email %>.
+<% end %>
+
+<% if @resource.try(:unconfirmed_email?) %>
+  <%= mail_paragraph do %>
+    We are contacting you to notify you that your email is being changed to
+    <strong style="<%= mail_strong_style %>"><%= @resource.unconfirmed_email %></strong>.
+  <% end %>
+<% else %>
+  <%= mail_paragraph do %>
+    We are contacting you to notify you that your email has been changed to
+    <strong style="<%= mail_strong_style %>"><%= @resource.email %></strong>.
+  <% end %>
+<% end %>

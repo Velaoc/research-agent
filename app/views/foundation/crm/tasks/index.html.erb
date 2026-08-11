@@ -1,0 +1,58 @@
+<% title "Tasks" %>
+
+<section class="md-page md-stack">
+  <header class="md-actions" style="justify-content: space-between; align-items: flex-start; flex-wrap: wrap;">
+    <div>
+      <p class="md-section__eyebrow">CRM</p>
+      <h1>Tasks</h1>
+    </div>
+    <%= link_to "New task", new_crm_task_path, class: "md-button md-button--filled" %>
+  </header>
+
+  <%= render "foundation/crm/shared/subnav" %>
+
+  <%= form_with url: crm_tasks_path, method: :get, class: "md-actions", local: true do %>
+    <div class="md-field" style="flex: 1; min-width: 160px;">
+      <%= label_tag :q, "Search" %>
+      <%= text_field_tag :q, params[:q] %>
+    </div>
+    <div class="md-field">
+      <%= label_tag :status, "Status" %>
+      <%= select_tag :status, options_for_select([ [ "Open (default)", "" ], [ "All statuses", "all" ] ] + Foundation::Crm::Task::STATUSES.map { |s| [ s.humanize, s ] }, params[:status].presence || (params[:all] == "1" ? "all" : "")) %>
+    </div>
+    <%= hidden_field_tag :mine, params[:mine] if params[:mine] == "1" %>
+    <%= submit_tag "Filter", class: "md-button md-button--tonal" %>
+  <% end %>
+
+  <div class="md-actions" style="flex-wrap: wrap;">
+    <%= crm_filter_link "All assignees", crm_tasks_path(q: params[:q], status: params[:status], all: params[:all]), active: params[:mine] != "1" %>
+    <%= crm_filter_link "Mine", crm_tasks_path(q: params[:q], status: params[:status], all: params[:all], mine: "1"), active: params[:mine] == "1" %>
+  </div>
+
+  <div class="table-scroll">
+    <table>
+      <thead><tr><th>Title</th><th>Status</th><th>Due</th><th>Assignee</th><th></th></tr></thead>
+      <tbody>
+        <% @tasks.each do |task| %>
+          <tr>
+            <td><%= task.title %></td>
+            <td><%= task.status.humanize %></td>
+            <td><%= task.due_on || "—" %></td>
+            <td><%= crm_user_label(task.assignee) %></td>
+            <td><%= link_to "View", crm_task_path(task) %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+
+  <%
+    qs = []
+    qs << "q=#{ERB::Util.url_encode(params[:q])}" if params[:q].present?
+    qs << "status=#{ERB::Util.url_encode(params[:status])}" if params[:status].present?
+    qs << "all=1" if params[:all] == "1"
+    qs << "mine=1" if params[:mine] == "1"
+    base = qs.any? ? "#{crm_tasks_path}?#{qs.join('&')}" : crm_tasks_path
+  %>
+  <%= crm_pagination(base_path: base, page: @page, has_next: @has_next_page) %>
+</section>

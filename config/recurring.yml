@@ -1,0 +1,38 @@
+# examples:
+#   periodic_cleanup:
+#     class: CleanSoftDeletedRecordsJob
+#     queue: background
+#     args: [ 1000, { batch_size: 500 } ]
+#     schedule: every hour
+#   periodic_cleanup_with_command:
+#     command: "SoftDeletedRecord.due.delete_all"
+#     priority: 2
+#     schedule: at 5am every day
+
+production:
+  # foundation:module storefront
+  storefront_expire_reservations:
+    class: Foundation::Storefront::ExpireReservationJob
+    schedule: every 5 minutes
+  storefront_repair_receipts:
+    class: Foundation::Storefront::RepairReceiptDispatchesJob
+    schedule: every 5 minutes
+  storefront_purge_unattached_blobs:
+    class: Foundation::Storefront::PurgeUnattachedBlobsJob
+    schedule: every day at 3am
+  # /foundation:module storefront
+  sessions_sweep:
+    class: SessionsSweepJob
+    schedule: every day at 4am
+  reauthentication_sweep:
+    class: ReauthenticationSweepJob
+    schedule: every day at 4am
+  disposable_email_domain_list_update:
+    class: DisposableEmailDomainListUpdateJob
+    schedule: every day at 5am
+  sitemap_refresh:
+    class: SitemapRefreshJob
+    schedule: every day at 6am
+  clear_solid_queue_finished_jobs:
+    command: "SolidQueue::Job.clear_finished_in_batches(sleep_between_batches: 0.3)"
+    schedule: every hour at minute 12

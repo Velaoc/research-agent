@@ -1,0 +1,11 @@
+<% content_for :title, "Storefront products" %>
+<header class="header"><div><h1>Storefront products</h1><p>Digital goods only. Inventory represents limited licenses or capacity.</p></div><div class="actions"><%= link_to "New product", new_storefront_admin_product_path, class: "btn" %></div></header>
+<section class="md-card md-card--filled md-stack" aria-labelledby="csv-title">
+  <div><h2 id="csv-title">Import products from CSV</h2><p>UTF-8, 1 MB and 500 rows maximum. Required: name and either price or price_cents. Valid rows are committed independently; errors are reported by row.</p></div>
+  <%= form_with url: import_storefront_admin_products_path, multipart: true, class: "md-actions" do |form| %>
+    <%= form.label :csv, "CSV file" %><%= form.file_field :csv, accept: ".csv,text/csv", required: true %><%= form.submit "Import CSV" %>
+  <% end %>
+</section>
+<div class="table-scroll"><table><thead><tr><th>Name</th><th>SKU</th><th>Price</th><th>Inventory</th><th>Available</th><th>Details</th></tr></thead><tbody>
+  <% @products.each do |product| %><tr><td><%= product.name %></td><td><%= product.sku %></td><td><%= storefront_money(product.price_cents, product.currency) %></td><td><%= product.inventory_quantity %></td><td><%= product.active? ? "Yes" : "No" %></td><td><%= link_to "View", storefront_admin_product_path(product) %></td></tr><% end %>
+</tbody></table></div>

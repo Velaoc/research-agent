@@ -1,0 +1,5 @@
+<% title "New stage" %>
+<section class="md-page md-page--narrow md-stack">
+  <header><h1>New stage for <%= @pipeline.name %></h1></header>
+  <%= render "form", stage: @stage %>
+</section>

@@ -1,0 +1,11 @@
+# Linked OAuth accounts. confirmed_github belongs to a user who also has a
+# password; oauth_only_google is its owner's only sign-in method.
+confirmed_github:
+  user: confirmed
+  provider: github
+  uid: fixture-github-uid-1
+
+oauth_only_google:
+  user: oauth_only
+  provider: google_oauth2
+  uid: fixture-google-uid-1

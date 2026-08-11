@@ -1,0 +1,29 @@
+<%= mail_heading "Organization invitation" %>
+
+<%= mail_paragraph do %>
+  Hello,
+<% end %>
+
+<%= mail_paragraph do %>
+  <%= @inviter_label %> has invited you to join
+  <strong style="<%= mail_strong_style %>"><%= @organization.name %></strong>
+  as a <%= @invitation.role %> on
+  <%= mail_application_name %>.
+<% end %>
+
+<%= mail_button "Accept the invitation", @accept_url %>
+
+<%= mail_muted do %>
+  If the button does not work, copy this address into your browser:
+<% end %>
+<p style="<%= mail_url_style %>"><%= @accept_url %></p>
+
+<% if @invitation.expires_at %>
+  <%= mail_muted do %>
+    This invitation expires on <%= @invitation.expires_at.to_date.to_fs(:long) %>.
+  <% end %>
+<% end %>
+
+<%= mail_muted do %>
+  If you were not expecting this invitation, you can ignore this email.
+<% end %>

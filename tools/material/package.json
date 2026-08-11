@@ -1,0 +1,19 @@
+{
+  "name": "vela-material-build-tools",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build:generator": "esbuild generate_tokens.mjs --bundle --platform=node --format=esm --legal-comments=eof --outfile=dist/generate_tokens.mjs",
+    "generate:tokens": "npm run build:generator && node dist/generate_tokens.mjs",
+    "generate:tokens:offline": "node dist/generate_tokens.mjs",
+    "check:tokens": "node dist/generate_tokens.mjs --check",
+    "verify:generator": "esbuild generate_tokens.mjs --bundle --platform=node --format=esm --legal-comments=eof --outfile=.generated/generate_tokens.mjs && cmp dist/generate_tokens.mjs .generated/generate_tokens.mjs",
+    "test": "npm run verify:generator && npm run check:tokens"
+  },
+  "dependencies": {
+    "@material/material-color-utilities": "0.4.0"
+  },
+  "devDependencies": {
+    "esbuild": "0.25.8"
+  }
+}

@@ -1,0 +1,259 @@
+# frozen_string_literal: true
+
+class CreateOrganizationsTables < ActiveRecord::Migration[8.1]
+  def change
+    # ⚠️ If your user model is NOT `User` (config.user_class), adjust every
+    # `to_table: :users` below (and `foreign_key: true` on user references)
+    # to your user table before migrating.
+    primary_key_type, foreign_key_type = primary_and_foreign_key_types
+    adapter = connection.adapter_name.downcase
+
+    # Organizations table
+    create_table :organizations_organizations, id: primary_key_type do |t|
+      t.string :name, null: false
+      t.integer :memberships_count, default: 0, null: false
+      t.send(json_column_type, :metadata, null: json_column_null, default: json_column_default)
+
+      t.timestamps
+    end
+
+    # Memberships join table (User ↔ Organization)
+    create_table :organizations_memberships, id: primary_key_type do |t|
+      t.references :user, null: false, type: foreign_key_type, foreign_key: true
+      t.references :organization, null: false, type: foreign_key_type, foreign_key: { to_table: :organizations_organizations }
+      t.references :invited_by, null: true, type: foreign_key_type, foreign_key: { to_table: :users }
+      t.string :role, null: false, default: "member"
+      t.send(json_column_type, :metadata, null: json_column_null, default: json_column_default)
+
+      # Verified-joining provenance: how this member joined and which email
+      # address they proved control of (if any).
+      t.string :joined_via
+      t.string :verified_email
+      t.string :verified_email_normalized
+      t.datetime :verified_at
+
+      t.timestamps
+    end
+
+    add_index :organizations_memberships, [ :user_id, :organization_id ], unique: true
+    add_index :organizations_memberships, :role
+
+    # One proven email address => one membership per organization.
+    # NULLs never collide, so unverified memberships are unconstrained —
+    # a plain unique index gives identical semantics on every adapter.
+    add_index :organizations_memberships, [ :organization_id, :verified_email_normalized ],
+              unique: true, name: "index_org_memberships_verified_email_unique"
+
+    # Enforce "at most one owner membership per organization" at DB level where possible.
+    # Both PostgreSQL and SQLite support partial indexes with identical syntax.
+    # ⚠️ Partial-index SQL stays on ONE line on purpose: the SQLite schema
+    # dumper only recovers the WHERE clause from single-line index SQL — a
+    # multi-line statement dumps as a FULL unique index, and databases
+    # provisioned from schema.rb (db:schema:load, test DBs) silently lose
+    # the partial-index invariant.
+    # `reversible` + up-only: raw execute in `def change` would raise
+    # IrreversibleMigration on rollback; the indexes/columns die with their
+    # tables when the reversed create_table drops them, so down is a no-op.
+    if adapter.include?("postgresql") || adapter.include?("sqlite")
+      reversible do |dir|
+        dir.up do
+          execute "CREATE UNIQUE INDEX index_organizations_memberships_single_owner " \
+                  "ON organizations_memberships (organization_id) WHERE role = 'owner'"
+        end
+      end
+    end
+
+    # Invitations table
+    create_table :organizations_invitations, id: primary_key_type do |t|
+      t.references :organization, null: false, type: foreign_key_type, foreign_key: { to_table: :organizations_organizations }
+      # invited_by is nullable to support dependent: :nullify when user is deleted
+      t.references :invited_by, null: true, type: foreign_key_type, foreign_key: { to_table: :users }
+      t.string :email, null: false
+      t.string :token, null: false
+      t.string :role, null: false, default: "member"
+      t.datetime :accepted_at
+      t.datetime :expires_at
+      t.send(json_column_type, :metadata, null: json_column_null, default: json_column_default)
+      # Copied onto the membership created when this invitation is accepted
+      # (cohort tags etc. — the gem never interprets the contents)
+      t.send(json_column_type, :membership_metadata, null: json_column_null, default: json_column_default)
+
+      t.timestamps
+    end
+
+    add_index :organizations_invitations, :token, unique: true
+    add_index :organizations_invitations, :email
+
+    # Unique partial index: only one pending (non-accepted) invitation per email per org
+    # Both PostgreSQL and SQLite (3.8.0+) support partial indexes with identical syntax.
+    # (One line on purpose — see the single_owner index note above.)
+    if adapter.include?("postgresql") || adapter.include?("sqlite")
+      reversible do |dir|
+        dir.up do
+          execute "CREATE UNIQUE INDEX index_organizations_invitations_pending_unique " \
+                  "ON organizations_invitations (organization_id, LOWER(email)) WHERE accepted_at IS NULL"
+        end
+      end
+    elsif adapter.include?("mysql")
+      # MySQL doesn't support partial indexes, so we use a generated column that is
+      # only non-NULL for pending invitations and enforce uniqueness on that value.
+      reversible do |dir|
+        dir.up do
+          execute <<-SQL
+            ALTER TABLE organizations_invitations
+            ADD COLUMN pending_email VARCHAR(255)
+            GENERATED ALWAYS AS (
+              CASE
+                WHEN accepted_at IS NULL THEN LOWER(email)
+                ELSE NULL
+              END
+            ) STORED
+          SQL
+        end
+      end
+
+      add_index :organizations_invitations, [ :organization_id, :pending_email ], unique: true, name: "index_organizations_invitations_pending_unique"
+    else
+      # For other adapters, fall back to app-level validation.
+      add_index :organizations_invitations, [ :organization_id, :email ], name: "index_organizations_invitations_on_org_and_email"
+    end
+
+    # === Verified joining ===
+
+    # Email domains owned by an organization (exact-match joining)
+    create_table :organizations_domains, id: primary_key_type do |t|
+      t.references :organization, null: false, type: foreign_key_type, foreign_key: { to_table: :organizations_organizations }
+      t.string :domain, null: false
+      t.send(json_column_type, :membership_metadata, null: json_column_null, default: json_column_default)
+      t.send(json_column_type, :metadata, null: json_column_null, default: json_column_default)
+
+      t.timestamps
+    end
+
+    add_index :organizations_domains, [ :organization_id, :domain ], unique: true
+    add_index :organizations_domains, :domain
+
+    # Shareable join codes ("PINs") — globally unique, rotatable, cappable
+    create_table :organizations_join_codes, id: primary_key_type do |t|
+      t.references :organization, null: false, type: foreign_key_type, foreign_key: { to_table: :organizations_organizations }
+      t.string :code, null: false
+      t.string :label
+      t.boolean :requires_verified_domain_email, null: false, default: false
+      t.boolean :auto_approve, null: false, default: true
+      t.datetime :expires_at
+      t.integer :max_uses
+      t.integer :uses_count, null: false, default: 0
+      t.datetime :revoked_at
+      t.references :created_by, null: true, type: foreign_key_type, foreign_key: { to_table: :users }
+      t.send(json_column_type, :membership_metadata, null: json_column_null, default: json_column_default)
+      t.send(json_column_type, :metadata, null: json_column_null, default: json_column_default)
+
+      t.timestamps
+    end
+
+    add_index :organizations_join_codes, :code, unique: true
+
+    # Pre-approved roster emails (allowlist joining)
+    create_table :organizations_allowlist_entries, id: primary_key_type do |t|
+      t.references :organization, null: false, type: foreign_key_type, foreign_key: { to_table: :organizations_organizations }
+      t.string :email, null: false
+      t.string :email_normalized, null: false
+      t.string :source
+      t.send(json_column_type, :membership_metadata, null: json_column_null, default: json_column_default)
+      t.datetime :claimed_at
+      t.references :claimed_by, null: true, type: foreign_key_type, foreign_key: { to_table: :users }
+      t.send(json_column_type, :metadata, null: json_column_null, default: json_column_default)
+
+      t.timestamps
+    end
+
+    add_index :organizations_allowlist_entries, [ :organization_id, :email_normalized ], unique: true
+
+    # Join requests (request-to-join workflow + email-verification challenges)
+    create_table :organizations_join_requests, id: primary_key_type do |t|
+      t.references :organization, null: false, type: foreign_key_type, foreign_key: { to_table: :organizations_organizations }
+      t.references :user, null: false, type: foreign_key_type, foreign_key: true
+      t.string :status, null: false, default: "pending"
+      t.string :joined_via
+      t.references :join_code, null: true, type: foreign_key_type, foreign_key: { to_table: :organizations_join_codes }
+      t.string :message
+      t.string :verification_email
+      t.string :verification_email_normalized
+      t.string :verification_code_digest
+      t.datetime :verification_sent_at
+      t.datetime :verification_expires_at
+      t.integer :verification_attempts, null: false, default: 0
+      t.integer :verification_sends_count, null: false, default: 0
+      t.datetime :verified_at
+      t.references :decided_by, null: true, type: foreign_key_type, foreign_key: { to_table: :users }
+      t.datetime :decided_at
+      t.datetime :expires_at
+      t.send(json_column_type, :metadata, null: json_column_null, default: json_column_default)
+
+      t.timestamps
+    end
+
+    add_index :organizations_join_requests, :status
+
+    # One OPEN request per (organization, user). Decided requests keep their
+    # history without blocking a fresh request.
+    # (One line on purpose — see the single_owner index note above.)
+    if adapter.include?("postgresql") || adapter.include?("sqlite")
+      reversible do |dir|
+        dir.up do
+          execute "CREATE UNIQUE INDEX index_org_join_requests_pending_unique " \
+                  "ON organizations_join_requests (organization_id, user_id) WHERE status = 'pending'"
+        end
+      end
+    elsif adapter.include?("mysql")
+      # MySQL doesn't support partial indexes: use a generated column that is
+      # only non-NULL for pending requests (NULLs never collide in unique indexes).
+      reversible do |dir|
+        dir.up do
+          execute <<-SQL
+            ALTER TABLE organizations_join_requests
+            ADD COLUMN pending_user_key VARCHAR(255)
+            GENERATED ALWAYS AS (
+              CASE
+                WHEN status = 'pending' THEN CONCAT(organization_id, '-', user_id)
+                ELSE NULL
+              END
+            ) STORED
+          SQL
+        end
+      end
+
+      add_index :organizations_join_requests, :pending_user_key, unique: true, name: "index_org_join_requests_pending_unique"
+    else
+      add_index :organizations_join_requests, [ :organization_id, :user_id ], name: "index_org_join_requests_on_org_and_user"
+    end
+  end
+
+  private
+
+  def primary_and_foreign_key_types
+    config = Rails.configuration.generators
+    setting = config.options[config.orm][:primary_key_type]
+    primary_key_type = setting || :primary_key
+    foreign_key_type = setting || :bigint
+    [ primary_key_type, foreign_key_type ]
+  end
+
+  def json_column_type
+    return :jsonb if connection.adapter_name.downcase.include?('postgresql')
+    :json
+  end
+
+  # MySQL 8+ doesn't allow default values on JSON columns.
+  # Returns an empty hash default for SQLite/PostgreSQL, nil for MySQL.
+  def json_column_default
+    return nil if connection.adapter_name.downcase.include?('mysql')
+    {}
+  end
+
+  # Keep inserts safe on MySQL where JSON defaults are restricted.
+  # Other adapters keep metadata required with a {} default.
+  def json_column_null
+    connection.adapter_name.downcase.include?('mysql')
+  end
+end

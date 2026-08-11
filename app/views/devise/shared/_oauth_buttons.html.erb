@@ -1,0 +1,16 @@
+<%# "Continue with ..." buttons for whichever OAuth providers have
+    credentials right now (SPEC M3.4). Renders nothing when none do. The
+    request phase is a POST (omniauth-rails_csrf_protection), which
+    button_to provides, and Turbo is bypassed so the browser follows the
+    cross-site redirect to the provider itself. %>
+<% configured = Foundation::Oauth.configured_providers %>
+<% if configured.any? %>
+  <div class="mt-6 space-y-3 border-t border-md-outline-variant pt-6">
+    <% configured.each do |provider| %>
+      <%= button_to "Continue with #{Foundation::Oauth.label(provider)}",
+            omniauth_authorize_path(:user, provider),
+            data: { turbo: false },
+            class: "w-full rounded-md border border-md-outline px-4 py-2.5 font-medium hover:bg-md-surface-container" %>
+    <% end %>
+  </div>
+<% end %>

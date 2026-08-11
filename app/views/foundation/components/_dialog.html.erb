@@ -1,0 +1,14 @@
+<div class="md-dialog-host" data-controller="foundation--dialog">
+  <%= md_button trigger_label, variant: :outlined, data: { action: "foundation--dialog#open" }, aria: { controls: id, haspopup: "dialog" } %>
+  <dialog id="<%= id %>" class="md-dialog" data-foundation--dialog-target="dialog"
+          data-action="click->foundation--dialog#backdrop cancel->foundation--dialog#cancel">
+    <div class="md-dialog__container">
+      <header class="md-dialog__header">
+        <h2><%= title %></h2>
+        <%= md_icon_button(:close, label: "Close dialog", data: { action: "foundation--dialog#close" }) %>
+      </header>
+      <div class="md-dialog__content"><%= content %></div>
+      <% if actions.present? %><footer class="md-dialog__actions"><%= actions %></footer><% end %>
+    </div>
+  </dialog>
+</div>

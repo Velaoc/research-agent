@@ -1,0 +1,50 @@
+<% title @pipeline.name %>
+
+<section class="md-page md-stack">
+  <header class="md-actions" style="justify-content: space-between; align-items: flex-start; flex-wrap: wrap;">
+    <div>
+      <p class="md-section__eyebrow">Pipeline</p>
+      <h1><%= @pipeline.name %></h1>
+    </div>
+    <div class="md-actions">
+      <%= link_to "Edit", edit_crm_pipeline_path(@pipeline), class: "md-button md-button--tonal" %>
+      <%= link_to "Add stage", new_crm_pipeline_stage_path(@pipeline), class: "md-button md-button--outlined" %>
+      <%= button_to "Delete", crm_pipeline_path(@pipeline), method: :delete, class: "md-button md-button--text", form: { data: { turbo_confirm: "Delete this pipeline?" } } %>
+    </div>
+  </header>
+
+  <%= render "foundation/crm/shared/subnav" %>
+
+  <div class="table-scroll">
+    <table>
+      <thead><tr><th>Stage</th><th>Position</th><th>Probability</th><th>Closed</th><th></th></tr></thead>
+      <tbody>
+        <% @stages.each do |stage| %>
+          <tr>
+            <td><%= stage.name %></td>
+            <td><%= stage.position %></td>
+            <td><%= stage.probability %>%</td>
+            <td><%= stage.closed_won? ? "Won" : (stage.closed_lost? ? "Lost" : "—") %></td>
+            <td><%= link_to "Edit", edit_crm_pipeline_stage_path(@pipeline, stage) %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+
+  <section class="md-card md-card--filled md-stack">
+    <h2>Opportunities in this pipeline</h2>
+    <% if @opportunities.any? %>
+      <ul style="list-style: none; padding: 0; margin: 0;" class="md-stack">
+        <% @opportunities.each do |opportunity| %>
+          <li>
+            <%= link_to opportunity.name, crm_opportunity_path(opportunity) %>
+            <span class="text-md-on-surface-variant"> · <%= opportunity.pipeline_stage&.name %> · <%= crm_money(opportunity.amount_cents, opportunity.currency) %></span>
+          </li>
+        <% end %>
+      </ul>
+    <% else %>
+      <p class="text-md-on-surface-variant">No opportunities yet.</p>
+    <% end %>
+  </section>
+</section>

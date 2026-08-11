@@ -1,0 +1,3 @@
+name,price,slug
+Valid audited product,10.00,valid-audited-product
+Invalid audited product,10.123,invalid-audited-product

@@ -1,0 +1,36 @@
+<% identity = Rails.configuration.x.foundation %>
+<% title "Sign in" %>
+
+<section class="mx-auto w-full max-w-md px-4 py-8">
+  <div class="flex items-center gap-3">
+    <%= material_symbol(:person, class: "text-md-primary") %>
+    <div>
+      <h1 class="text-2xl font-semibold text-md-on-surface">Sign in</h1>
+      <p class="mt-1 text-sm text-md-on-surface-variant">
+        Continue in the <%= identity[:application_name] %> app.
+      </p>
+    </div>
+  </div>
+
+  <%= form_for(@resource, as: @resource_name, url: session_path(@resource_name), html: { class: "mt-8 space-y-5" }) do |f| %>
+    <div>
+      <%= f.label :email, class: "block text-sm font-medium text-md-on-surface" %>
+      <%= f.email_field :email, autofocus: true, autocomplete: "email", required: true,
+            class: "mt-1 block w-full rounded-md border border-md-outline bg-md-surface px-3 py-3 text-md-on-surface" %>
+    </div>
+
+    <div>
+      <%= f.label :password, class: "block text-sm font-medium text-md-on-surface" %>
+      <%= f.password_field :password, autocomplete: "current-password", required: true,
+            class: "mt-1 block w-full rounded-md border border-md-outline bg-md-surface px-3 py-3 text-md-on-surface" %>
+    </div>
+
+    <%= f.submit "Sign in", class: "w-full md-button md-button--filled" %>
+  <% end %>
+
+  <%= render "devise/shared/oauth_buttons" %>
+
+  <p class="mt-8 text-sm text-md-on-surface-variant">
+    <%= link_to "Forgot your password?", new_password_path(@resource_name), class: "underline" %>
+  </p>
+</section>

@@ -1,0 +1,9 @@
+<%= render "foundation/crm/shared/errors", record: pipeline %>
+<%= form_with model: pipeline, url: pipeline.persisted? ? crm_pipeline_path(pipeline) : crm_pipelines_path, class: "md-stack" do |form| %>
+  <div class="md-field"><%= form.label :name %><%= form.text_field :name, required: true, maxlength: 120 %></div>
+  <div class="md-field"><%= form.label :position %><%= form.number_field :position, min: 0, step: 1 %></div>
+  <div class="md-actions">
+    <%= form.submit class: "md-button md-button--filled" %>
+    <%= link_to "Cancel", pipeline.persisted? ? crm_pipeline_path(pipeline) : crm_pipelines_path, class: "md-button md-button--text" %>
+  </div>
+<% end %>

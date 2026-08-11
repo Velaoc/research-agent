@@ -1,0 +1,8 @@
+signup_confirmed:
+  user: confirmed
+  terms_version: v1
+  privacy_version: v1
+  accepted_at: <%= Time.utc(2026, 1, 1).to_fs(:db) %>
+  ip: 203.0.113.10
+  user_agent: FixtureBrowser/1.0
+  context: signup

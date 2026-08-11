@@ -1,0 +1,9 @@
+<% title "Order #{@order.public_reference}" %>
+<section class="md-section"><div class="md-page md-page--narrow md-stack">
+  <div><p class="md-section__eyebrow">Order receipt</p><h1>Order <%= @order.public_reference %></h1><p><span class="md-chip selected"><%= @order.state.humanize %></span><% if @order.simulated? %> <span class="md-chip">Simulation only</span><% end %></p></div>
+  <div class="md-list">
+    <% @order.line_items.each do |item| %><div class="md-list-item"><div><strong><%= item.name %></strong><br><span>SKU <%= item.sku %> · Quantity <%= item.quantity %></span></div><strong><%= storefront_money(item.line_total_cents, item.currency) %></strong></div><% end %>
+  </div>
+  <div class="storefront-total"><span>Total</span><strong><%= storefront_money(@order.total_cents, @order.currency) %></strong></div>
+  <div class="md-card md-card--filled"><h2>Need help?</h2><p><%= mail_to Rails.configuration.x.foundation[:support_email], "Contact support" %> and include the order reference above.</p><p><%= link_to "Terms of Service", legal_terms_path %> · <%= link_to "Privacy Policy", legal_privacy_path %></p></div>
+</div></section>

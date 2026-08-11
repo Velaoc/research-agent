@@ -1,0 +1,40 @@
+<% title "Companies" %>
+
+<section class="md-page md-stack">
+  <header class="md-actions" style="justify-content: space-between; align-items: flex-start; flex-wrap: wrap;">
+    <div>
+      <p class="md-section__eyebrow">CRM</p>
+      <h1>Companies</h1>
+    </div>
+    <%= link_to "New company", new_crm_company_path, class: "md-button md-button--filled" %>
+  </header>
+
+  <%= render "foundation/crm/shared/subnav" %>
+
+  <%= form_with url: crm_companies_path, method: :get, class: "md-actions", local: true do %>
+    <div class="md-field" style="flex: 1; min-width: 200px;">
+      <%= label_tag :q, "Search" %>
+      <%= text_field_tag :q, params[:q], placeholder: "Name, domain, industry" %>
+    </div>
+    <%= submit_tag "Filter", class: "md-button md-button--tonal" %>
+  <% end %>
+
+  <div class="table-scroll">
+    <table>
+      <thead><tr><th>Name</th><th>Domain</th><th>Industry</th><th></th></tr></thead>
+      <tbody>
+        <% @companies.each do |company| %>
+          <tr>
+            <td><%= company.name %></td>
+            <td><%= company.domain %></td>
+            <td><%= company.industry %></td>
+            <td><%= link_to "View", crm_company_path(company) %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+
+  <% base = params[:q].present? ? "#{crm_companies_path}?q=#{ERB::Util.url_encode(params[:q])}" : crm_companies_path %>
+  <%= crm_pagination(base_path: base, page: @page, has_next: @has_next_page) %>
+</section>

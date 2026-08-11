@@ -1,0 +1,9 @@
+<label class="md-choice md-choice--<%= type %>">
+  <% if type == :radio %>
+    <%= form.radio_button attribute, value, **options %>
+  <% else %>
+    <%= form.check_box attribute, **options %>
+  <% end %>
+  <span class="md-choice__control" aria-hidden="true"></span>
+  <span><%= label %></span>
+</label>

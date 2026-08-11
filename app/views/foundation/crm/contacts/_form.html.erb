@@ -1,0 +1,20 @@
+<%= render "foundation/crm/shared/errors", record: contact %>
+<%= form_with model: contact, url: contact.persisted? ? crm_contact_path(contact) : crm_contacts_path, class: "md-stack" do |form| %>
+  <div class="md-field"><%= form.label :first_name %><%= form.text_field :first_name, maxlength: 100 %></div>
+  <div class="md-field"><%= form.label :last_name %><%= form.text_field :last_name, maxlength: 100 %></div>
+  <div class="md-field"><%= form.label :email %><%= form.email_field :email, maxlength: 254 %></div>
+  <div class="md-field"><%= form.label :phone %><%= form.telephone_field :phone, maxlength: 60 %></div>
+  <div class="md-field"><%= form.label :title %><%= form.text_field :title, maxlength: 120 %></div>
+  <div class="md-field">
+    <%= form.label :company_id, "Company" %>
+    <%= form.collection_select :company_id, @companies, :id, :name, { include_blank: "None" } %>
+  </div>
+  <div class="md-field">
+    <%= form.label :owner_id, "Owner" %>
+    <%= form.collection_select :owner_id, @members, :id, :email, { include_blank: "Unassigned" } %>
+  </div>
+  <div class="md-actions">
+    <%= form.submit class: "md-button md-button--filled" %>
+    <%= link_to "Cancel", contact.persisted? ? crm_contact_path(contact) : crm_contacts_path, class: "md-button md-button--text" %>
+  </div>
+<% end %>

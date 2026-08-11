@@ -1,0 +1,27 @@
+<section class="mx-auto w-full max-w-md">
+  <h1 class="text-2xl font-semibold">One last step</h1>
+
+  <p class="mt-3 text-sm text-md-on-surface-variant">
+    You are creating a new account for
+    <strong class="text-md-on-surface"><%= @pending["email"] %></strong>
+    using <%= Foundation::Oauth.label(@pending["provider"]) %>.
+    Accept the terms below to finish — nothing is saved until you do.
+  </p>
+
+  <%= form_with url: oauth_assent_path, method: :post, class: "mt-6 space-y-5" do %>
+    <%= render "devise/shared/error_messages", resource: @user %>
+
+    <div class="flex items-start gap-2">
+      <%= check_box_tag :legal_assent, "1", false, class: "mt-1 size-4 rounded border-md-outline" %>
+      <%= label_tag :legal_assent, class: "text-sm" do %>
+        I agree to the <%= link_to "Terms of Service", legal_terms_path, class: "underline underline-offset-2", target: "_blank", rel: "noopener" %>
+        and the <%= link_to "Privacy Policy", legal_privacy_path, class: "underline underline-offset-2", target: "_blank", rel: "noopener" %>.
+      <% end %>
+    </div>
+
+    <%= submit_tag "Create account", class: "w-full md-button md-button--filled" %>
+  <% end %>
+
+  <%= button_to "Cancel — do not create an account", oauth_assent_path, method: :delete,
+        class: "mt-4 text-sm text-md-on-surface-variant underline underline-offset-2 hover:text-md-on-surface" %>
+</section>

@@ -1,0 +1,52 @@
+<% title "Pricing" %>
+
+<section class="md-page">
+  <header class="text-center">
+    <p class="md-section__eyebrow">Plans</p>
+    <h1>Plans for every stage</h1>
+    <p class="text-md-on-surface-variant">Choose monthly flexibility or save with annual billing.</p>
+    <%= render "foundation/components/tabs", label: "Billing interval", tabs: %w[month year].map { |interval|
+      { label: interval == "month" ? "Monthly" : "Yearly", href: pricing_path(interval: interval), active: @interval == interval }
+    } %>
+  </header>
+
+  <% if @billing.manual_plan_banner? %>
+    <div class="md-card md-card--filled mt-8" role="status">
+      <strong>Manually assigned plan.</strong> Contact an administrator to change access. Existing subscription billing can still be managed from <%= link_to "Billing", billing_path %>.
+    </div>
+  <% end %>
+
+  <div class="md-pricing-grid">
+    <% @plans.each do |plan| %>
+      <% cta = @billing.plan_cta(plan) %>
+      <article class="md-card <%= plan.highlighted? ? "md-card--elevated" : "md-card--outlined" %> md-price-card">
+        <% if plan.highlighted? %><span class="md-chip selected">Most popular</span><% end %>
+        <h2><%= plan.name %></h2>
+        <p class="text-md-on-surface-variant"><%= plan.description %></p>
+        <p class="md-price-card__price">
+          <%= @billing.price_amount_label(plan) %>
+          <% if @billing.show_interval_suffix?(plan) %><span class="text-md-on-surface-variant">/<%= @interval %></span><% end %>
+        </p>
+        <ul><% plan.bullets.each do |bullet| %><li><%= bullet %></li><% end %></ul>
+
+        <% case cta[:kind] %>
+        <% when :badge %>
+          <span class="md-chip<%= " selected" if cta[:selected] %>"><%= cta[:label] %></span>
+        <% when :checkout %>
+          <%= button_to cta[:label], billing_checkout_path,
+                params: { plan: cta[:plan_key], interval: cta[:interval] }, data: { turbo: false },
+                class: cta[:style] %>
+        <% when :external %>
+          <%= link_to cta[:label], cta[:url], class: cta[:style] %>
+        <% when :link %>
+          <% href = case cta[:path]
+                    when :billing then billing_path
+                    when :registration then new_user_registration_path
+                    else new_user_session_path
+                    end %>
+          <%= link_to cta[:label], href, class: cta[:style] %>
+        <% end %>
+      </article>
+    <% end %>
+  </div>
+</section>

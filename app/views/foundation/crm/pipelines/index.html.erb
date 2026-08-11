@@ -1,0 +1,28 @@
+<% title "Pipelines" %>
+
+<section class="md-page md-stack">
+  <header class="md-actions" style="justify-content: space-between; align-items: flex-start; flex-wrap: wrap;">
+    <div>
+      <p class="md-section__eyebrow">CRM</p>
+      <h1>Pipelines</h1>
+    </div>
+    <%= link_to "New pipeline", new_crm_pipeline_path, class: "md-button md-button--filled" %>
+  </header>
+
+  <%= render "foundation/crm/shared/subnav" %>
+
+  <div class="table-scroll">
+    <table>
+      <thead><tr><th>Name</th><th>Stages</th><th></th></tr></thead>
+      <tbody>
+        <% @pipelines.each do |pipeline| %>
+          <tr>
+            <td><%= pipeline.name %></td>
+            <td><%= pipeline.stages.size %></td>
+            <td><%= link_to "View", crm_pipeline_path(pipeline) %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+</section>

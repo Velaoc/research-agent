@@ -1,0 +1,4 @@
+<span class="md-tooltip" data-controller="foundation--tooltip" <%= tag.attributes(attributes) %>>
+  <span tabindex="0" data-foundation--tooltip-target="anchor" aria-describedby="<%= dom_id = "tooltip-#{SecureRandom.hex(5)}" %>"><%= label %></span>
+  <span id="<%= dom_id %>" class="md-tooltip__bubble" role="tooltip" data-foundation--tooltip-target="bubble" hidden><%= text %></span>
+</span>

@@ -1,0 +1,85 @@
+<section class="mx-auto w-full max-w-2xl">
+  <h1 class="text-2xl font-semibold">Members of <%= current_organization.name %></h1>
+
+  <ul class="mt-6 divide-y divide-md-outline-variant">
+    <% @memberships.each do |membership| %>
+      <li class="flex flex-wrap items-center justify-between gap-3 py-4">
+        <div>
+          <span class="font-medium"><%= membership.user.email %></span>
+          <span class="ml-2 text-sm text-md-on-surface-variant"><%= membership.role %></span>
+          <% if membership.user_id == current_user.id %>
+            <span class="ml-2 rounded bg-md-surface-container px-2 py-0.5 text-xs uppercase tracking-wide">you</span>
+          <% end %>
+        </div>
+
+        <% unless membership.user_id == current_user.id || membership.role == "owner" %>
+          <div class="flex flex-wrap items-center gap-3 text-sm">
+            <% if current_user.has_organization_permission_to?(:edit_member_roles) %>
+              <%= form_with url: membership_path(membership), method: :patch, class: "flex items-center gap-2" do %>
+                <label for="membership_role_<%= membership.id %>" class="sr-only">
+                  Role for <%= membership.user.email %>
+                </label>
+                <%= select_tag "membership[role]",
+                      options_for_select([ [ "member", "member" ], [ "admin", "admin" ] ], membership.role),
+                      id: "membership_role_#{membership.id}",
+                      class: "rounded-md border border-md-outline px-2 py-1" %>
+                <%= submit_tag "Change role", class: "underline underline-offset-2 hover:text-md-on-surface-variant" %>
+              <% end %>
+            <% end %>
+
+            <% if current_user.has_organization_permission_to?(:transfer_ownership) && membership.role == "admin" %>
+              <%= button_to "Make owner", transfer_ownership_membership_path(membership), method: :post,
+                    form: { data: { turbo_confirm: "Transfer ownership of #{current_organization.name} to #{membership.user.email}? You become an admin." } },
+                    class: "underline underline-offset-2 hover:text-md-on-surface-variant" %>
+            <% end %>
+
+            <% if current_user.has_organization_permission_to?(:remove_members) %>
+              <%= button_to "Remove", membership_path(membership), method: :delete,
+                    form: { data: { turbo_confirm: "Remove #{membership.user.email} from #{current_organization.name}?" } },
+                    class: "text-md-error underline underline-offset-2 hover:text-md-error" %>
+            <% end %>
+          </div>
+        <% end %>
+      </li>
+    <% end %>
+  </ul>
+
+  <% if current_user.has_organization_permission_to?(:invite_members) %>
+    <h2 class="mt-10 text-lg font-semibold">Invitations</h2>
+    <%= link_to "Invite a member", new_organization_invitation_path,
+          class: "mt-3 md-button md-button--filled" %>
+
+    <% pending_invitations = current_organization.pending_invitations.order(created_at: :desc) %>
+    <% if pending_invitations.any? %>
+      <ul class="mt-4 divide-y divide-md-outline-variant">
+        <% pending_invitations.each do |invitation| %>
+          <li class="flex flex-wrap items-center justify-between gap-3 py-3">
+            <div>
+              <span><%= invitation.email %></span>
+              <span class="ml-2 text-sm text-md-on-surface-variant"><%= invitation.role %> · pending</span>
+            </div>
+            <div class="flex items-center gap-3 text-sm">
+              <%= button_to "Resend", resend_organization_invitation_path(invitation), method: :post,
+                    class: "underline underline-offset-2 hover:text-md-on-surface-variant" %>
+              <%= button_to "Revoke", organization_invitation_path(invitation), method: :delete,
+                    form: { data: { turbo_confirm: "Revoke the invitation for #{invitation.email}?" } },
+                    class: "text-md-error underline underline-offset-2 hover:text-md-error" %>
+            </div>
+          </li>
+        <% end %>
+      </ul>
+    <% end %>
+  <% end %>
+
+  <h2 class="mt-10 text-lg font-semibold">Leave this organization</h2>
+  <p class="mt-1 text-sm text-md-on-surface-variant">
+    An organization's only owner must transfer ownership before leaving.
+  </p>
+  <%= button_to "Leave organization", leave_memberships_path, method: :delete,
+        form: { data: { turbo_confirm: "Leave #{current_organization.name}?" } },
+        class: "mt-3 rounded-md border border-md-error px-4 py-2 text-sm font-medium text-md-error hover:bg-md-error-container" %>
+
+  <p class="mt-8 text-sm">
+    <%= link_to "All organizations", organizations_path, class: "underline underline-offset-2 hover:text-md-on-surface-variant" %>
+  </p>
+</section>

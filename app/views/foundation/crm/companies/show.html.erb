@@ -1,0 +1,42 @@
+<% title @company.name %>
+
+<section class="md-page md-stack">
+  <header class="md-actions" style="justify-content: space-between; align-items: flex-start; flex-wrap: wrap;">
+    <div>
+      <p class="md-section__eyebrow">Company</p>
+      <h1><%= @company.name %></h1>
+    </div>
+    <div class="md-actions">
+      <%= link_to "Edit", edit_crm_company_path(@company), class: "md-button md-button--tonal" %>
+      <%= button_to "Delete", crm_company_path(@company), method: :delete, class: "md-button md-button--text", form: { data: { turbo_confirm: "Delete this company?" } } %>
+    </div>
+  </header>
+
+  <%= render "foundation/crm/shared/subnav" %>
+
+  <div class="table-scroll">
+    <table>
+      <tbody>
+        <tr><th>Domain</th><td><%= @company.domain.presence || "—" %></td></tr>
+        <tr><th>Website</th><td><%= @company.website.present? ? link_to(@company.website, @company.website, rel: "noopener noreferrer", target: "_blank") : "—" %></td></tr>
+        <tr><th>Phone</th><td><%= @company.phone.presence || "—" %></td></tr>
+        <tr><th>Industry</th><td><%= @company.industry.presence || "—" %></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <% if @contacts.any? %>
+    <section class="md-card md-card--filled md-stack">
+      <h2>Contacts</h2>
+      <ul style="list-style: none; padding: 0; margin: 0;" class="md-stack">
+        <% @contacts.each do |contact| %>
+          <li><%= link_to contact.display_name, crm_contact_path(contact) %></li>
+        <% end %>
+      </ul>
+    </section>
+  <% end %>
+
+  <%= render "foundation/crm/shared/timeline",
+        record: @company, notes: @notes, tasks: @tasks, activities: @activities,
+        note: @note, task: @task, members: @members %>
+</section>

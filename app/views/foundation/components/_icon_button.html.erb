@@ -1,0 +1,7 @@
+<%= button_tag type: attributes.delete(:type) || "button",
+      class: class_names("md-icon-button", attributes.delete(:class), selected: selected),
+      disabled: disabled,
+      aria: { label: label, pressed: selected },
+      **attributes do %>
+  <%= material_symbol(icon, fill: selected) %>
+<% end %>

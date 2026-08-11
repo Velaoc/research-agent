@@ -1,0 +1,2 @@
+<% content_for :title, "Storefront orders" %><header class="header"><h1>Storefront orders</h1></header>
+<div class="table-scroll"><table><thead><tr><th>Reference</th><th>State</th><th>Total</th><th>Created</th><th>Details</th></tr></thead><tbody><% @orders.each do |order| %><tr><td><%= order.public_reference %></td><td><%= order.state %></td><td><%= storefront_money(order.total_cents, order.currency) %></td><td><%= l(order.created_at, format: :short) %></td><td><%= link_to "View", storefront_admin_order_path(order) %></td></tr><% end %></tbody></table></div>

@@ -1,0 +1,4 @@
+<span class="<%= class_names("md-chip", attributes.delete(:class), selected: selected) %>" <%= tag.attributes(attributes) %>>
+  <span><%= label %></span>
+  <% if removable %><%= material_symbol(:close, size: 20) %><% end %>
+</span>

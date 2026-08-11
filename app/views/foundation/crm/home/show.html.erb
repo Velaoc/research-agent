@@ -1,0 +1,56 @@
+<% title "CRM" %>
+
+<section class="md-page md-stack">
+  <header>
+    <p class="md-section__eyebrow"><%= @organization.name %></p>
+    <h1>CRM</h1>
+    <p class="text-md-on-surface-variant">Contacts, companies, leads, opportunities, and tasks for this workspace.</p>
+  </header>
+
+  <%= render "foundation/crm/shared/subnav" %>
+
+  <div class="md-stack" style="grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); display: grid; gap: 16px;">
+    <article class="md-card md-card--filled"><p class="text-md-on-surface-variant">Contacts</p><h2><%= @contacts_count %></h2></article>
+    <article class="md-card md-card--filled"><p class="text-md-on-surface-variant">Companies</p><h2><%= @companies_count %></h2></article>
+    <article class="md-card md-card--filled"><p class="text-md-on-surface-variant">Open leads</p><h2><%= @leads_count %></h2></article>
+    <article class="md-card md-card--filled"><p class="text-md-on-surface-variant">Open opportunities</p><h2><%= @open_opportunities_count %></h2></article>
+  </div>
+
+  <div class="md-actions" style="flex-wrap: wrap;">
+    <%= link_to "New contact", new_crm_contact_path, class: "md-button md-button--filled" %>
+    <%= link_to "New lead", new_crm_lead_path, class: "md-button md-button--tonal" %>
+    <%= link_to "New opportunity", new_crm_opportunity_path, class: "md-button md-button--outlined" %>
+    <%= link_to "New task", new_crm_task_path, class: "md-button md-button--outlined" %>
+  </div>
+
+  <div class="md-stack" style="display: grid; gap: 24px; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));">
+    <section class="md-card md-card--outlined md-stack" aria-labelledby="open-tasks-heading">
+      <h2 id="open-tasks-heading">Open tasks</h2>
+      <% if @open_tasks.any? %>
+        <ul style="list-style: none; padding: 0; margin: 0;" class="md-stack">
+          <% @open_tasks.each do |task| %>
+            <li><%= link_to task.title, crm_task_path(task) %><% if task.due_on %> <span class="text-md-on-surface-variant">· due <%= task.due_on %></span><% end %></li>
+          <% end %>
+        </ul>
+      <% else %>
+        <p class="text-md-on-surface-variant">No open tasks.</p>
+      <% end %>
+    </section>
+
+    <section class="md-card md-card--outlined md-stack" aria-labelledby="recent-activity-heading">
+      <h2 id="recent-activity-heading">Recent activity</h2>
+      <% if @recent_activities.any? %>
+        <ul style="list-style: none; padding: 0; margin: 0;" class="md-stack">
+          <% @recent_activities.each do |activity| %>
+            <li>
+              <span class="text-md-on-surface-variant"><%= activity.created_at.to_fs(:short) %></span>
+              — <%= activity.summary %>
+            </li>
+          <% end %>
+        </ul>
+      <% else %>
+        <p class="text-md-on-surface-variant">Activity will appear as your team works records.</p>
+      <% end %>
+    </section>
+  </div>
+</section>

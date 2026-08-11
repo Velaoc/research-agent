@@ -1,0 +1,55 @@
+<% title "Contacts" %>
+
+<section class="md-page md-stack">
+  <header class="md-actions" style="justify-content: space-between; align-items: flex-start; flex-wrap: wrap;">
+    <div>
+      <p class="md-section__eyebrow">CRM</p>
+      <h1>Contacts</h1>
+    </div>
+    <%= link_to "New contact", new_crm_contact_path, class: "md-button md-button--filled" %>
+  </header>
+
+  <%= render "foundation/crm/shared/subnav" %>
+
+  <%= form_with url: crm_contacts_path, method: :get, class: "md-actions", local: true do %>
+    <div class="md-field" style="flex: 1; min-width: 200px;">
+      <%= label_tag :q, "Search" %>
+      <%= text_field_tag :q, params[:q], placeholder: "Name, email, phone" %>
+    </div>
+    <%= hidden_field_tag :mine, params[:mine] if params[:mine] == "1" %>
+    <%= submit_tag "Filter", class: "md-button md-button--tonal" %>
+  <% end %>
+
+  <div class="md-actions" style="flex-wrap: wrap;">
+    <%= crm_filter_link "All", crm_contacts_path(q: params[:q]), active: params[:mine] != "1" %>
+    <%= crm_filter_link "Mine", crm_contacts_path(q: params[:q], mine: "1"), active: params[:mine] == "1" %>
+  </div>
+
+  <div class="table-scroll">
+    <table>
+      <thead>
+        <tr><th>Name</th><th>Email</th><th>Company</th><th>Owner</th><th></th></tr>
+      </thead>
+      <tbody>
+        <% @contacts.each do |contact| %>
+          <tr>
+            <td><%= contact.display_name %></td>
+            <td><%= contact.email %></td>
+            <td><%= contact.company&.name %></td>
+            <td><%= crm_user_label(contact.owner) %></td>
+            <td><%= link_to "View", crm_contact_path(contact) %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+
+  <%
+    qs = []
+    qs << "q=#{ERB::Util.url_encode(params[:q])}" if params[:q].present?
+    qs << "mine=1" if params[:mine] == "1"
+    base = crm_contacts_path
+    base = "#{base}?#{qs.join('&')}" if qs.any?
+  %>
+  <%= crm_pagination(base_path: base, page: @page, has_next: @has_next_page) %>
+</section>

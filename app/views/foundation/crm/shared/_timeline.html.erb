@@ -1,0 +1,83 @@
+<%# locals: record, notes, tasks, activities, note, task, members %>
+<section class="md-stack" aria-labelledby="crm-timeline-heading">
+  <h2 id="crm-timeline-heading">Timeline</h2>
+
+  <div class="md-card md-card--outlined md-stack">
+    <h3>Add note</h3>
+    <%= form_with url: crm_notes_path, class: "md-stack" do |form| %>
+      <%= hidden_field_tag :notable_type, record.class.name %>
+      <%= hidden_field_tag :notable_id, record.id %>
+      <div class="md-field">
+        <%= label_tag :note_body, "Note" %>
+        <%= text_area_tag "note[body]", nil, id: "note_body", required: true, rows: 3 %>
+      </div>
+      <div class="md-actions"><%= form.submit "Add note", class: "md-button md-button--filled" %></div>
+    <% end %>
+  </div>
+
+  <div class="md-card md-card--outlined md-stack">
+    <h3>Add task</h3>
+    <%= form_with model: task, url: crm_tasks_path, class: "md-stack" do |form| %>
+      <%= form.hidden_field :taskable_type, value: record.class.name %>
+      <%= form.hidden_field :taskable_id, value: record.id %>
+      <div class="md-field"><%= form.label :title %><%= form.text_field :title, required: true, maxlength: 200 %></div>
+      <div class="md-field"><%= form.label :due_on, "Due on" %><%= form.date_field :due_on %></div>
+      <div class="md-field">
+        <%= form.label :assignee_id, "Assignee" %>
+        <%= form.collection_select :assignee_id, members, :id, :email, { include_blank: "Unassigned" } %>
+      </div>
+      <div class="md-actions"><%= form.submit "Add task", class: "md-button md-button--tonal" %></div>
+    <% end %>
+  </div>
+
+  <% if tasks.any? %>
+    <div class="md-card md-card--filled md-stack">
+      <h3>Tasks</h3>
+      <ul class="md-stack" style="list-style: none; padding: 0; margin: 0;">
+        <% tasks.each do |item| %>
+          <li class="md-actions" style="justify-content: space-between;">
+            <span>
+              <strong><%= item.title %></strong>
+              <span class="text-md-on-surface-variant"> — <%= item.status %><% if item.due_on %> · due <%= item.due_on %><% end %></span>
+            </span>
+            <span class="md-actions">
+              <%= link_to "Open", crm_task_path(item), class: "md-button md-button--text" %>
+              <% if item.status == "open" %>
+                <%= button_to "Complete", complete_crm_task_path(item), method: :post, class: "md-button md-button--text" %>
+              <% end %>
+            </span>
+          </li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <% if notes.any? %>
+    <div class="md-card md-card--filled md-stack">
+      <h3>Notes</h3>
+      <% notes.each do |item| %>
+        <article>
+          <p class="text-md-on-surface-variant"><%= crm_user_label(item.author) %> · <%= l(item.created_at, format: :short) rescue item.created_at.to_fs(:short) %></p>
+          <p><%= simple_format(item.body) %></p>
+          <%= button_to "Delete note", crm_note_path(item), method: :delete, class: "md-button md-button--text", form: { data: { turbo_confirm: "Delete this note?" } } %>
+        </article>
+      <% end %>
+    </div>
+  <% end %>
+
+  <div class="md-card md-card--outlined md-stack">
+    <h3>Activity</h3>
+    <% if activities.any? %>
+      <ol class="md-stack" style="list-style: none; padding: 0; margin: 0;">
+        <% activities.each do |item| %>
+          <li>
+            <p class="text-md-on-surface-variant"><%= l(item.created_at, format: :short) rescue item.created_at.to_fs(:short) %> · <%= crm_user_label(item.actor) %></p>
+            <p><%= item.summary %></p>
+          </li>
+        <% end %>
+      </ol>
+    <% else %>
+      <p class="text-md-on-surface-variant">No activity yet.</p>
+    <% end %>
+  </div>
+</section>

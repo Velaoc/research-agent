@@ -1,0 +1,138 @@
+# Kamal deploy configuration for a self-hosted production deployment.
+# Operator guide: docs/DEPLOY.md
+# Runtime env contract: docs/HOSTED_RUNTIME.md and lib/foundation/runtime_config.rb
+#
+# Before the first deploy:
+#   1. bin/rename … so config/foundation.yml domain matches proxy.host / APP_HOST
+#   2. Fill servers, image/registry, and proxy.host below
+#   3. Populate .kamal/secrets (never commit real secret values)
+#   4. bin/kamal setup && bin/kamal deploy
+#
+# This path is independent of hosted preview (VELA_HOLODEX_PREVIEW). Do not set
+# that flag here — the hosting runtime injects it for disposable previews only.
+
+# Container name prefix. Change after bin/rename if you want a product-specific name.
+service: vela-foundation
+
+# Image name on your registry (user/app or registry path without tag).
+image: vela-foundation
+
+servers:
+  web:
+    - 192.168.0.1
+  # Prefer a dedicated job process once you leave a single small host.
+  # When enabled, set SOLID_QUEUE_IN_PUMA to "0" (exactly) under env.clear.
+  # job:
+  #   hosts:
+  #     - 192.168.0.1
+  #   cmd: bin/jobs
+
+# kamal-proxy terminates TLS and forwards to Thruster on container port 80.
+# host must be the foundation.yml domain or a subdomain of it (config.hosts
+# and APP_HOST enforcement use that domain).
+proxy:
+  ssl: true
+  host: example.com
+  app_port: 80
+  healthcheck:
+    path: /up
+    interval: 2
+    timeout: 5
+
+registry:
+  # Docker Hub: omit server. GHCR example: ghcr.io
+  # server: ghcr.io
+  # username: your-user
+  #
+  # Local single-host registry (no auth) — replace before a real ship:
+  server: localhost:5555
+  # password:
+  #   - KAMAL_REGISTRY_PASSWORD
+
+builder:
+  arch: amd64
+
+# Bridge fingerprinted Propshaft assets across deploys (WORKDIR is /rails).
+asset_path: /rails/public/assets
+
+# First boot runs db:prepare inside bin/docker-entrypoint; allow migrations.
+deploy_timeout: 120
+
+env:
+  clear:
+    # Exactly "1" or "0" — any other value stops boot (see RuntimeConfig).
+    SOLID_QUEUE_IN_PUMA: "1"
+    # Public origin for mail links, absolute URLs, and Stripe return URLs.
+    # Bare host or https://… origin; must be foundation.yml domain or a subdomain.
+    APP_HOST: example.com
+    # Non-disk Active Storage service name from config/storage.yml.
+    ACTIVE_STORAGE_SERVICE: amazon
+    # Optional tuning:
+    # RAILS_LOG_LEVEL: info
+    # WEB_CONCURRENCY: "2"
+    # RAILS_MAX_THREADS: "3"
+    # JOB_CONCURRENCY: "1"
+    # SMTP_ADDRESS: smtp.example.com
+    # SMTP_PORT: "587"
+    # SMTP_ENABLE_STARTTLS_AUTO: "true"
+    # MAILER_FROM: "Product <noreply@example.com>"
+    # foundation:module storefront
+    # STOREFRONT_STRIPE_MODE: live
+    # /foundation:module storefront
+    # AWS_REGION: us-east-1
+    # S3_BUCKET: your-bucket
+    # S3_ENDPOINT: https://xxx.r2.cloudflarestorage.com
+  secret:
+    - RAILS_MASTER_KEY
+    - DATABASE_URL
+    # Object storage (required when ACTIVE_STORAGE_SERVICE=amazon)
+    - AWS_ACCESS_KEY_ID
+    - AWS_SECRET_ACCESS_KEY
+    # Mail (required together when SMTP_ADDRESS is set)
+    # - SMTP_USERNAME
+    # - SMTP_PASSWORD
+    # Subscriptions (Pay)
+    # - STRIPE_PUBLIC_KEY
+    # - STRIPE_PRIVATE_KEY
+    # - STRIPE_SIGNING_SECRET
+    # - STRIPE_PRO_MONTHLY_PRICE_ID
+    # - STRIPE_PRO_YEARLY_PRICE_ID
+    # - STRIPE_ENTERPRISE_MONTHLY_PRICE_ID
+    # - STRIPE_ENTERPRISE_YEARLY_PRICE_ID
+    # foundation:module storefront
+    # Storefront (distinct webhook secret from Pay)
+    # - STOREFRONT_STRIPE_SECRET_KEY
+    # - STOREFRONT_STRIPE_WEBHOOK_SECRET
+    # /foundation:module storefront
+    # OAuth / Turnstile
+    # - GOOGLE_OAUTH_CLIENT_ID
+    # - GOOGLE_OAUTH_CLIENT_SECRET
+    # - GITHUB_OAUTH_CLIENT_ID
+    # - GITHUB_OAUTH_CLIENT_SECRET
+    # - CLOUDFLARE_TURNSTILE_SITE_KEY
+    # - CLOUDFLARE_TURNSTILE_SECRET_KEY
+
+aliases:
+  console: app exec --interactive --reuse "bin/rails console"
+  shell: app exec --interactive --reuse "bash"
+  logs: app logs -f
+  dbc: app exec --interactive --reuse "bin/rails dbconsole --include-password"
+
+# Optional on-host PostgreSQL. Point DATABASE_URL at this accessory on the
+# Kamal Docker network, e.g.
+#   postgres://vela:PASSWORD@vela-foundation-db:5432/vela_foundation_production
+# Boot once with: bin/kamal accessory boot db
+# Or supply DATABASE_URL for any managed Postgres and leave this commented out.
+# accessories:
+#   db:
+#     image: postgres:16
+#     host: 192.168.0.1
+#     port: "127.0.0.1:5432:5432"
+#     env:
+#       clear:
+#         POSTGRES_USER: vela
+#         POSTGRES_DB: vela_foundation_production
+#       secret:
+#         - POSTGRES_PASSWORD
+#     directories:
+#       - data:/var/lib/postgresql/data

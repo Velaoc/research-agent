@@ -1,0 +1,8 @@
+<% title "Simulate checkout" %>
+<section class="md-section"><div class="md-page md-page--narrow md-auth-card md-stack">
+  <div class="storefront-simulation-banner" role="alert"><strong>Payment simulation — no money moves</strong><p>This preview never contacts Stripe and does not request, accept, or store a card number or security code.</p></div>
+  <h1>Simulate checkout</h1>
+  <p>Order <%= @order.public_reference %> totals <strong><%= storefront_money(@order.total_cents, @order.currency) %></strong>.</p>
+  <%= button_to "Confirm simulated payment", storefront_simulate_path(@order.public_reference, access_token: params[:access_token]), method: :post, class: "md-button md-button--filled" %>
+  <%= link_to "Return to shop", storefront_products_path, class: "md-button md-button--text" %>
+</div></section>

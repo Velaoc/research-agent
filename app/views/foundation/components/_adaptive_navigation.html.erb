@@ -1,0 +1,11 @@
+<nav class="md-navigation" aria-label="Primary">
+  <% items.each do |item| %>
+    <%= link_to item.fetch(:href), class: class_names("md-navigation__item", active: item[:active]), aria: { current: item[:active] ? "page" : nil } do %>
+      <%= material_symbol(item.fetch(:icon), fill: item[:active]) %>
+      <span><%= item.fetch(:label) %></span>
+    <% end %>
+  <% end %>
+  <%= button_to destroy_user_session_path, method: :delete, class: "md-navigation__item md-navigation__signout" do %>
+    <span>Sign out</span>
+  <% end %>
+</nav>

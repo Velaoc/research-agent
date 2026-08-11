@@ -1,0 +1,19 @@
+<section class="mx-auto w-full max-w-2xl">
+  <h1 class="text-2xl font-semibold"><%= @organization.name %></h1>
+  <p class="mt-1 text-sm text-md-on-surface-variant">
+    <%= pluralize(@organization.member_count, "member") %> · your role: <%= current_user.role_in(@organization) %>
+  </p>
+
+  <nav class="mt-6 flex flex-wrap gap-4 text-sm" aria-label="Organization">
+    <% if @organization == current_organization %>
+      <%= link_to "Members", memberships_path, class: "underline underline-offset-2 hover:text-md-on-surface-variant" %>
+    <% else %>
+      <%= button_to "Switch to this organization", switch_organization_path(@organization),
+            class: "underline underline-offset-2 hover:text-md-on-surface-variant" %>
+    <% end %>
+    <% if current_user.is_admin_of?(@organization) %>
+      <%= link_to "Settings", edit_organization_path(@organization), class: "underline underline-offset-2 hover:text-md-on-surface-variant" %>
+    <% end %>
+    <%= link_to "All organizations", organizations_path, class: "underline underline-offset-2 hover:text-md-on-surface-variant" %>
+  </nav>
+</section>

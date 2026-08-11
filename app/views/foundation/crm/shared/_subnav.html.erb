@@ -1,0 +1,5 @@
+<nav class="md-actions" aria-label="CRM sections" style="flex-wrap: wrap;">
+  <% crm_nav_items.each do |item| %>
+    <%= link_to item[:label], item[:href], class: class_names("md-chip", selected: item[:active]) %>
+  <% end %>
+</nav>

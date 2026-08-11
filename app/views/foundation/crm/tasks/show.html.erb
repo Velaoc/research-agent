@@ -1,0 +1,37 @@
+<% title @task.title %>
+
+<section class="md-page md-stack">
+  <header class="md-actions" style="justify-content: space-between; align-items: flex-start; flex-wrap: wrap;">
+    <div>
+      <p class="md-section__eyebrow">Task</p>
+      <h1><%= @task.title %></h1>
+      <p class="text-md-on-surface-variant"><%= @task.status.humanize %><% if @task.due_on %> · due <%= @task.due_on %><% end %></p>
+    </div>
+    <div class="md-actions">
+      <% if @task.status == "open" %>
+        <%= button_to "Complete", complete_crm_task_path(@task), method: :post, class: "md-button md-button--filled" %>
+      <% end %>
+      <%= link_to "Edit", edit_crm_task_path(@task), class: "md-button md-button--tonal" %>
+      <%= button_to "Delete", crm_task_path(@task), method: :delete, class: "md-button md-button--text", form: { data: { turbo_confirm: "Delete this task?" } } %>
+    </div>
+  </header>
+
+  <%= render "foundation/crm/shared/subnav" %>
+
+  <div class="table-scroll">
+    <table>
+      <tbody>
+        <tr><th>Assignee</th><td><%= crm_user_label(@task.assignee) %></td></tr>
+        <tr><th>Creator</th><td><%= crm_user_label(@task.creator) %></td></tr>
+        <tr><th>Related</th><td>
+          <% if @task.taskable %>
+            <%= @task.taskable.try(:display_name) || @task.taskable.try(:name) || @task.taskable_type %>
+          <% else %>
+            —
+          <% end %>
+        </td></tr>
+        <tr><th>Description</th><td><%= simple_format(@task.description.presence || "—") %></td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>

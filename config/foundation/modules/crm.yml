@@ -1,0 +1,44 @@
+# Declaration for organization-scoped CRM primitives (SPEC B2).
+# Omission deletes owned paths and strips host markers; it does not run at boot.
+# Default is included so a foundation checkout keeps CRM on disk.
+name: crm
+summary: Organization-scoped contacts, companies, leads, opportunities, and activity
+default: included
+
+paths:
+  - app/controllers/foundation/crm
+  - app/helpers/foundation/crm_helper.rb
+  - app/models/foundation/crm
+  - app/models/foundation/crm.rb
+  - app/services/foundation/crm
+  - app/views/foundation/crm
+  - db/migrate/20260811140000_create_crm.rb
+  - docs/CRM.md
+  - test/integration/crm_flows_test.rb
+  - test/integration/crm_isolation_test.rb
+  - test/models/crm_models_test.rb
+  - test/support/crm_test_helper.rb
+
+table_prefixes:
+  - crm_
+
+config_keys: []
+
+residue_patterns:
+  - "Foundation::Crm"
+  - "foundation/crm"
+  - "crm_root_path"
+  - "crm_contacts_path"
+  - "crm_companies_path"
+  - "crm_leads_path"
+  - "crm_opportunities_path"
+  - "crm_pipelines_path"
+  - "crm_tasks_path"
+  - "crm_tags_path"
+  - "crm_notes_path"
+  - "scope \"crm\""
+  - "module: \"foundation/crm\""
+  - "CrmHelper"
+  - "crm_money"
+  - "crm_nav_items"
+  - "label: \"CRM\""

@@ -1,0 +1,32 @@
+<section class="mx-auto w-full max-w-2xl">
+  <h1 class="text-2xl font-semibold">Invitations for <%= current_organization.name %></h1>
+
+  <% if @invitations.any? %>
+    <ul class="mt-6 divide-y divide-md-outline-variant">
+      <% @invitations.each do |invitation| %>
+        <li class="flex flex-wrap items-center justify-between gap-3 py-4">
+          <div>
+            <span class="font-medium"><%= invitation.email %></span>
+            <span class="ml-2 text-sm text-md-on-surface-variant"><%= invitation.role %> · <%= invitation.status %></span>
+          </div>
+          <% if invitation.pending? %>
+            <div class="flex items-center gap-3 text-sm">
+              <%= button_to "Resend", resend_organization_invitation_path(invitation), method: :post,
+                    class: "underline underline-offset-2 hover:text-md-on-surface-variant" %>
+              <%= button_to "Revoke", organization_invitation_path(invitation), method: :delete,
+                    form: { data: { turbo_confirm: "Revoke the invitation for #{invitation.email}?" } },
+                    class: "text-md-error underline underline-offset-2 hover:text-md-error" %>
+            </div>
+          <% end %>
+        </li>
+      <% end %>
+    </ul>
+  <% else %>
+    <p class="mt-6 text-md-on-surface-variant">No invitations yet.</p>
+  <% end %>
+
+  <p class="mt-8 text-sm">
+    <%= link_to "Invite a member", new_organization_invitation_path, class: "underline underline-offset-2 hover:text-md-on-surface-variant" %> ·
+    <%= link_to "Members", memberships_path, class: "underline underline-offset-2 hover:text-md-on-surface-variant" %>
+  </p>
+</section>

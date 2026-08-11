@@ -1,0 +1,42 @@
+<% title @lead.name %>
+
+<section class="md-page md-stack">
+  <header class="md-actions" style="justify-content: space-between; align-items: flex-start; flex-wrap: wrap;">
+    <div>
+      <p class="md-section__eyebrow">Lead</p>
+      <h1><%= @lead.name %></h1>
+      <p class="text-md-on-surface-variant"><%= @lead.status.humanize %><% if @lead.source %> · <%= @lead.source %><% end %></p>
+    </div>
+    <div class="md-actions">
+      <%= link_to "Edit", edit_crm_lead_path(@lead), class: "md-button md-button--tonal" %>
+      <%= button_to "Delete", crm_lead_path(@lead), method: :delete, class: "md-button md-button--text", form: { data: { turbo_confirm: "Delete this lead?" } } %>
+    </div>
+  </header>
+
+  <%= render "foundation/crm/shared/subnav" %>
+
+  <div class="table-scroll">
+    <table>
+      <tbody>
+        <tr><th>Email</th><td><%= @lead.email.presence || "—" %></td></tr>
+        <tr><th>Phone</th><td><%= @lead.phone.presence || "—" %></td></tr>
+        <tr><th>Company</th><td><%= @lead.company ? link_to(@lead.company.name, crm_company_path(@lead.company)) : "—" %></td></tr>
+        <tr><th>Contact</th><td><%= @lead.contact ? link_to(@lead.contact.display_name, crm_contact_path(@lead.contact)) : "—" %></td></tr>
+        <tr><th>Owner</th><td><%= crm_user_label(@lead.owner) %></td></tr>
+        <tr><th>Description</th><td><%= simple_format(@lead.description.presence || "—") %></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <section class="md-card md-card--outlined md-stack">
+    <h2>Assignment</h2>
+    <%= form_with url: assign_crm_lead_path(@lead), method: :post, class: "md-actions" do %>
+      <%= select_tag :owner_id, options_from_collection_for_select(@members, :id, :email, @lead.owner_id), include_blank: "Unassigned" %>
+      <%= submit_tag "Assign owner", class: "md-button md-button--tonal" %>
+    <% end %>
+  </section>
+
+  <%= render "foundation/crm/shared/timeline",
+        record: @lead, notes: @notes, tasks: @tasks, activities: @activities,
+        note: @note, task: @task, members: @members %>
+</section>

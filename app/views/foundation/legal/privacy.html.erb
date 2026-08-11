@@ -1,0 +1,170 @@
+<% identity = Rails.configuration.x.foundation %>
+<article class="mx-auto max-w-2xl space-y-6 leading-relaxed">
+  <header>
+    <h1 class="text-3xl font-semibold">Privacy Policy</h1>
+    <p class="mt-2 text-sm text-md-on-surface-variant">
+      Version <%= Foundation::Legal.privacy_label %>
+      &middot; Last updated <%= Foundation::Legal::PRIVACY_UPDATED_ON.iso8601 %>
+    </p>
+    <p class="mt-2 rounded-md border border-md-tertiary bg-md-tertiary-container px-4 py-3 text-sm text-md-on-tertiary-container">
+      TODO-OPERATOR: This policy describes the template's defaults, not your
+      deployment. Review every section — especially lawful bases, processors,
+      retention, and international transfers — with qualified counsel before
+      launch, then bump the version in <code>Foundation::Legal</code>.
+    </p>
+  </header>
+
+  <section>
+    <h2 class="text-xl font-semibold">1. Who is responsible</h2>
+    <p>
+      This policy explains how the operator of
+      <%= identity[:application_name] %> ("we") handles personal data when you
+      use the Service at https://<%= identity[:domain] %>.
+      <!-- TODO-OPERATOR: name the data controller (legal entity, address) and, if required, your data protection officer or EU/UK representative. -->
+      The data controller is <strong>TODO-OPERATOR: legal entity name and
+      address</strong>. For anything in this policy, contact
+      <%= mail_to identity[:legal_email], nil, class: "underline underline-offset-2" %>.
+    </p>
+  </section>
+
+  <section>
+    <h2 class="text-xl font-semibold">2. Data we collect</h2>
+    <p><strong>Account data.</strong> Email address, a salted hash of your
+      password (never the password itself), confirmation and sign-in state,
+      and the versions of the legal documents you accepted together with the
+      time, IP address, and browser identification of that acceptance.</p>
+    <p><strong>Order data.</strong> Where purchases are enabled: what you
+      ordered, amounts and currency, order status, and the email used at
+      checkout; legal versions accepted; and provider session/payment/event
+      identifiers used to prevent duplicate fulfillment. The template sells
+      digital goods only and does not collect shipping addresses. Card
+      numbers and security codes are handled by our payment processor and
+      never reach our servers.</p>
+    <p><strong>Session data.</strong> Cookies that keep you signed in,
+      remember-me tokens if you opt in, device and browser details, IP address,
+      approximate location when available, sign-in method, last activity,
+      failed sign-in attempts, revocations, and account-lock timestamps.</p>
+    <p><strong>Technical data.</strong> Server logs with IP address, browser
+      user agent, requested pages, and timestamps, kept for security and
+      debugging; and the answers of anti-bot challenges (Cloudflare
+      Turnstile) on registration and password-reset forms.</p>
+  </section>
+
+  <section>
+    <h2 class="text-xl font-semibold">3. Why we use it</h2>
+    <ul class="list-disc space-y-1 pl-6">
+      <li>to provide the Service: authentication, account management, and — where enabled — processing orders;</li>
+      <li>to secure it: preventing abuse, locking brute-forced accounts, filtering bots, and investigating incidents;</li>
+      <li>to communicate: transactional email such as confirmation, password-reset, unlock, and receipt messages;</li>
+      <li>to comply with legal obligations, such as tax and bookkeeping rules for orders;</li>
+      <li>to keep evidence of legal assent (versions accepted, when, from where).</li>
+    </ul>
+    <p>We do not sell personal data and do not use it for third-party advertising.</p>
+  </section>
+
+  <section>
+    <h2 class="text-xl font-semibold">4. Lawful bases</h2>
+    <p>
+      <strong>TODO-OPERATOR:</strong> if you are subject to the GDPR/UK GDPR
+      or similar, map each purpose above to a lawful basis. The template's
+      expected mapping is: performing our contract with you (accounts,
+      orders, transactional mail), legitimate interests (security, abuse
+      prevention, service improvement), legal obligation (bookkeeping,
+      assent records), and consent where you opt in to anything optional.
+    </p>
+  </section>
+
+  <section>
+    <h2 class="text-xl font-semibold">5. Processors and recipients</h2>
+    <p>
+      We share data only with service providers that process it on our
+      instructions, under data processing agreements:
+    </p>
+    <ul class="list-disc space-y-1 pl-6">
+      <li>Hosting/infrastructure: <strong>TODO-OPERATOR: name your host and region.</strong></li>
+      <li>Content delivery and bot protection: Cloudflare (proxying, Turnstile challenges).</li>
+      <li>Email delivery: <strong>TODO-OPERATOR: name your SMTP/email provider.</strong></li>
+      <li>Payments (where enabled): Stripe, which acts as its own controller for card data.</li>
+      <li><strong>TODO-OPERATOR:</strong> list any analytics, error-tracking, or support tooling you add.</li>
+    </ul>
+    <p>
+      We disclose data to authorities only where a law we are subject to
+      requires it.
+    </p>
+  </section>
+
+  <section>
+    <h2 class="text-xl font-semibold">6. Cookies and analytics</h2>
+    <p>
+      The template uses only cookies that are necessary to operate the
+      Service: the session cookie, an optional remember-me cookie, CSRF
+      protection, and a signed random device identifier created at sign-in.
+      The device identifier recognizes a browser installation so repeated
+      sign-ins can be managed as one device; it survives logout for up to five
+      years but contains no browser fingerprint or account identifier. These
+      need no consent banner in most jurisdictions. No analytics or marketing
+      cookies are set by default.
+      <strong>TODO-OPERATOR:</strong> if you add analytics or marketing tags,
+      document them here and add a consent mechanism where required.
+    </p>
+  </section>
+
+  <section>
+    <h2 class="text-xl font-semibold">7. Retention</h2>
+    <ul class="list-disc space-y-1 pl-6">
+      <li>Account data: kept while the account exists; deleted or anonymized promptly after account deletion, except where law requires longer.</li>
+      <li>Legal-assent records: kept for the life of the account plus the limitation period for contract claims. <!-- TODO-OPERATOR: confirm the period for your jurisdiction. --></li>
+      <li>Order and invoice data: kept for the statutory bookkeeping period. <!-- TODO-OPERATOR: e.g. 6-10 years depending on jurisdiction. --></li>
+      <li>Server logs and security counters: rotated on a short schedule, typically 30-90 days.</li>
+      <li>Device session history: kept for up to 12 months by default, then removed by a daily retention job.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2 class="text-xl font-semibold">8. Your rights</h2>
+    <p>
+      Depending on where you live, you may have the right to access the
+      personal data we hold about you, correct it, receive a portable copy,
+      have it deleted, restrict or object to certain processing, and withdraw
+      consent you have given. You can exercise most of this directly: account
+      settings let you change your email and password and delete your
+      account. For everything else, email
+      <%= mail_to identity[:legal_email], nil, class: "underline underline-offset-2" %>
+      and we will respond within the statutory deadline. You also have the
+      right to complain to your local data protection authority.
+    </p>
+  </section>
+
+  <section>
+    <h2 class="text-xl font-semibold">9. International transfers</h2>
+    <p>
+      <strong>TODO-OPERATOR:</strong> state where your servers and processors
+      are located and, if personal data leaves your users' jurisdiction (for
+      example EU data processed in the US), the transfer mechanism you rely
+      on — adequacy decisions, Standard Contractual Clauses, or the EU-US
+      Data Privacy Framework — for each processor in Section 5.
+    </p>
+  </section>
+
+  <section>
+    <h2 class="text-xl font-semibold">10. Security</h2>
+    <p>
+      Passwords are stored as salted bcrypt hashes; transport is encrypted
+      with TLS; repeated failed sign-ins lock the account; registration and
+      password-reset forms carry an anti-bot challenge. No online service can
+      promise perfect security, but we notify affected users and authorities
+      of breaches where the law requires it.
+    </p>
+  </section>
+
+  <section>
+    <h2 class="text-xl font-semibold">11. Changes to this policy</h2>
+    <p>
+      When this policy changes materially we will announce it by email or an
+      in-product notice before it takes effect, and the version identifier at
+      the top of this page will change. Earlier versions you accepted remain
+      recorded on your account. Questions are always welcome at
+      <%= mail_to identity[:legal_email], nil, class: "underline underline-offset-2" %>.
+    </p>
+  </section>
+</article>

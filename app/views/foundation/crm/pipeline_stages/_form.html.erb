@@ -1,0 +1,12 @@
+<%= render "foundation/crm/shared/errors", record: stage %>
+<%= form_with model: stage, url: stage.persisted? ? crm_pipeline_stage_path(@pipeline, stage) : crm_pipeline_stages_path(@pipeline), class: "md-stack" do |form| %>
+  <div class="md-field"><%= form.label :name %><%= form.text_field :name, required: true, maxlength: 120 %></div>
+  <div class="md-field"><%= form.label :position %><%= form.number_field :position, min: 0, step: 1 %></div>
+  <div class="md-field"><%= form.label :probability %><%= form.number_field :probability, min: 0, max: 100, step: 1 %></div>
+  <div class="md-field"><%= form.check_box :closed_won %> <%= form.label :closed_won, "Closed won" %></div>
+  <div class="md-field"><%= form.check_box :closed_lost %> <%= form.label :closed_lost, "Closed lost" %></div>
+  <div class="md-actions">
+    <%= form.submit class: "md-button md-button--filled" %>
+    <%= link_to "Cancel", crm_pipeline_path(@pipeline), class: "md-button md-button--text" %>
+  </div>
+<% end %>

@@ -1,0 +1,12 @@
+<%= mail_heading "Unlock your account" %>
+
+<%= mail_paragraph do %>
+  Hello <%= @resource.email %>. Your account has been locked after too many unsuccessful sign-in attempts.
+<% end %>
+
+<%= mail_button "Unlock my account", unlock_url(@resource, unlock_token: @token) %>
+
+<%= mail_muted do %>
+  If the button does not work, copy this address into your browser:
+<% end %>
+<p style="<%= mail_url_style %>"><%= unlock_url(@resource, unlock_token: @token) %></p>

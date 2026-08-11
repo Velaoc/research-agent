@@ -1,0 +1,78 @@
+# Product identity and foundation-wide settings.
+#
+# Loaded in config/application.rb and exposed everywhere as
+# Rails.configuration.x.foundation (keys work as strings or symbols).
+# These are template placeholders. Run bin/rename to stamp a real
+# identity across this file, the README, and the web manifest before
+# shipping an app; editing them here by hand works too.
+shared:
+  # Display name used in page titles, meta tags, and mail.
+  application_name: "Application"
+
+  # Absolute URL or asset path for the product logo. Blank renders a
+  # plain wordmark instead.
+  logo_url: ""
+
+  # Seed color the Material Design 3 token generator will derive light
+  # and dark palettes from.
+  brand_seed_color: "#6750A4"
+
+  # Fallbacks for pages that do not set their own title/description.
+  default_page_title: "Welcome"
+  default_page_description: "A production-ready Rails application."
+
+  # Absolute URL of the default Open Graph / social sharing image.
+  # Blank omits the og:image tag.
+  default_og_image_url: ""
+
+  # Public social profiles, e.g. { github: "https://github.com/example" }.
+  # Empty means no social links are rendered.
+  social_links: {}
+
+  # Operator mailboxes surfaced in support links and legal pages.
+  support_email: "support@example.com"
+  legal_email: "legal@example.com"
+
+  # Canonical production domain, no scheme. Used for sitemaps and
+  # absolute URLs in mail.
+  domain: "example.com"
+
+  # Exact storefront feature flag (SPEC M8): only the YAML boolean true
+  # enables its routes, navigation, models' entry points, and production
+  # readiness requirement. Any other value is disabled. Commerce-oriented
+  # apps generated from this foundation are ready to customize by default.
+  storefront_enabled: true
+
+  # M8 deliberately supports digital fulfillment only. Inventory can model
+  # limited licenses/capacity. A physical-goods app must first implement
+  # address collection, shipping/tax calculation, and matching legal terms;
+  # readiness rejects any unimplemented mode instead of silently shipping.
+  storefront_fulfillment_mode: "digital"
+
+  # A live production storefront refuses readiness until an operator has
+  # completed the commerce-specific legal/identity checklist in
+  # docs/STOREFRONT.md and deliberately changes this marker to true.
+  storefront_commerce_legal_reviewed: false
+
+  # Exact lowercase HTTPS hosts permitted for browser-rendered external
+  # product images. Empty (the safe default) requires Active Storage uploads.
+  storefront_external_image_hosts: []
+
+  # Host capacity ceilings for /healthcheck disk and memory probes (percent used).
+  # Probes pass with an informational note when the platform cannot report figures.
+  healthcheck_disk_usage_percent_max: 90
+  healthcheck_memory_usage_percent_max: 90
+
+  # Native mobile shell (SPEC M14). Association identifiers stay empty until
+  # an operator fills them; unconfigured association endpoints return 404.
+  # Path-configuration JSON does not embed these values.
+  native:
+    # Apple Universal Links: "{TeamID}.{bundle.id}" (e.g. ABCDE12345.com.example.app).
+    ios_app_id: ""
+    # Paths claimed for Universal Links. Default claims the whole site.
+    ios_paths:
+      - "*"
+    # Android App Links package name (applicationId).
+    android_package_name: ""
+    # SHA-256 cert fingerprints of the signing key(s), colon-separated hex.
+    android_sha256_cert_fingerprints: []

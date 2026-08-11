@@ -1,0 +1,11 @@
+Hello,
+
+<%= @inviter_label %> has invited you to join <%= @organization.name %> as a <%= @invitation.role %> on <%= Rails.configuration.x.foundation[:application_name] %>.
+
+Accept the invitation:
+
+<%= @accept_url %>
+<% if @invitation.expires_at %>
+This invitation expires on <%= @invitation.expires_at.to_date.to_fs(:long) %>.
+<% end %>
+If you were not expecting this invitation, you can ignore this email.

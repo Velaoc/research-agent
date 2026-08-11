@@ -1,0 +1,11 @@
+<div class="md-menu" data-controller="foundation--menu">
+  <button type="button" class="md-icon-button" aria-label="<%= label %>" aria-haspopup="menu" aria-expanded="false"
+          data-foundation--menu-target="trigger" data-action="foundation--menu#toggle">
+    <%= material_symbol(local_assigns.fetch(:icon, :more_vert)) %>
+  </button>
+  <div class="md-menu__surface" role="menu" hidden data-foundation--menu-target="surface" data-action="keydown->foundation--menu#navigate">
+    <% items.each do |item| %>
+      <%= link_to item.fetch(:label), item.fetch(:href), role: "menuitem", tabindex: -1, class: "md-menu__item" %>
+    <% end %>
+  </div>
+</div>

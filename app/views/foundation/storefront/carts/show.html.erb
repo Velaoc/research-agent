@@ -1,0 +1,26 @@
+<% title "Cart" %>
+<section class="md-section"><div class="md-section__inner md-stack">
+  <div class="storefront-heading-row"><div><p class="md-section__eyebrow">Storefront</p><h1>Your cart</h1></div><%= link_to "Continue shopping", storefront_products_path, class: "md-button md-button--text" %></div>
+  <% items = @cart.filter_map { |id, quantity| [@products[id], quantity] if @products[id] } %>
+  <% if items.any? %>
+    <div class="md-list">
+      <% items.each do |product, quantity| %>
+        <div class="md-list-item storefront-cart-item">
+          <div><strong><%= product.name %></strong><br><span><%= storefront_money(product.price_cents, product.currency) %> each</span></div>
+          <%= form_with url: item_storefront_cart_path(product), method: :patch, class: "storefront-inline-form" do |form| %>
+            <%= form.label :quantity, "Quantity for #{product.name}", class: "sr-only" %>
+            <%= form.number_field :quantity, value: quantity, min: 1, max: 10, required: true %>
+            <%= form.submit "Update", class: "md-button md-button--outlined" %>
+          <% end %>
+          <strong><%= storefront_money(product.price_cents * quantity.to_i, product.currency) %></strong>
+          <%= button_to "Remove", item_storefront_cart_path(product), method: :delete, class: "md-button md-button--text" %>
+        </div>
+      <% end %>
+    </div>
+    <% currency = items.first.first.currency %><% total = items.sum { |product, quantity| product.price_cents * quantity.to_i } %>
+    <div class="storefront-total"><span>Total</span><strong><%= storefront_money(total, currency) %></strong></div>
+    <div class="md-actions"><%= link_to "Continue to checkout", storefront_checkout_path, class: "md-button md-button--filled" %></div>
+  <% else %>
+    <div class="md-card md-card--filled"><h2>Your cart is empty</h2><p>Browse the catalog to find something you like.</p><%= link_to "Shop products", storefront_products_path, class: "md-button md-button--filled" %></div>
+  <% end %>
+</div></section>

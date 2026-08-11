@@ -1,0 +1,33 @@
+<section class="mx-auto w-full max-w-md">
+  <h1 class="text-2xl font-semibold">Join <%= @invitation.organization.name %></h1>
+  <p class="mt-2 text-md-on-surface-variant">
+    <%= @invitation.invited_by&.email || "A member" %> invited
+    <%= @invitation.email %> to join
+    <strong><%= @invitation.organization.name %></strong>
+    as a <%= @invitation.role %>.
+  </p>
+
+  <% if @invitation.accepted? %>
+    <p role="status" class="mt-6 text-md-on-surface-variant">This invitation has already been used.</p>
+  <% elsif @invitation.expired? %>
+    <p role="alert" class="mt-6 text-md-on-tertiary-container">This invitation has expired. Please ask for a new one.</p>
+  <% elsif @user_is_logged_in && !@user_email_matches %>
+    <p role="alert" class="mt-6 text-md-on-tertiary-container">
+      You are signed in as <%= current_user.email %>, but this invitation was sent to
+      <%= @invitation.email %>. Sign in with that account to accept it.
+    </p>
+  <% else %>
+    <% unless @user_is_logged_in %>
+      <p class="mt-6 text-sm text-md-on-surface-variant">
+        You will be asked to <%= @user_exists ? "sign in" : "create an account" %> first.
+      </p>
+    <% end %>
+    <%= button_to "Accept invitation", accept_invitation_path(@invitation.token),
+          class: "mt-4 md-button md-button--filled" %>
+    <% if @invitation.expires_at %>
+      <p class="mt-4 text-sm text-md-on-surface-variant">
+        This invitation expires on <%= @invitation.expires_at.to_date.to_fs(:long) %>.
+      </p>
+    <% end %>
+  <% end %>
+</section>

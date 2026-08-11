@@ -1,0 +1,24 @@
+<%= render "foundation/crm/shared/errors", record: task %>
+<%= form_with model: task, url: task.persisted? ? crm_task_path(task) : crm_tasks_path, class: "md-stack" do |form| %>
+  <% if task.taskable.present? && !task.persisted? %>
+    <%= form.hidden_field :taskable_type %>
+    <%= form.hidden_field :taskable_id %>
+  <% end %>
+  <div class="md-field"><%= form.label :title %><%= form.text_field :title, required: true, maxlength: 200 %></div>
+  <div class="md-field"><%= form.label :description %><%= form.text_area :description, rows: 4 %></div>
+  <div class="md-field"><%= form.label :due_on, "Due on" %><%= form.date_field :due_on %></div>
+  <% if task.persisted? %>
+    <div class="md-field">
+      <%= form.label :status %>
+      <%= form.select :status, Foundation::Crm::Task::STATUSES.map { |s| [ s.humanize, s ] } %>
+    </div>
+  <% end %>
+  <div class="md-field">
+    <%= form.label :assignee_id, "Assignee" %>
+    <%= form.collection_select :assignee_id, @members, :id, :email, { include_blank: "Unassigned" } %>
+  </div>
+  <div class="md-actions">
+    <%= form.submit class: "md-button md-button--filled" %>
+    <%= link_to "Cancel", task.persisted? ? crm_task_path(task) : crm_tasks_path, class: "md-button md-button--text" %>
+  </div>
+<% end %>

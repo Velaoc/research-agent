@@ -1,0 +1,49 @@
+<section class="mx-auto w-full max-w-md">
+  <h1 class="text-2xl font-semibold">Sign up</h1>
+
+  <%= form_for(resource, as: resource_name, url: registration_path(resource_name), html: { class: "mt-6 space-y-5" }) do |f| %>
+    <%= render "devise/shared/error_messages", resource: resource %>
+
+    <div>
+      <%= f.label :email, class: "block text-sm font-medium" %>
+      <%= f.email_field :email, autofocus: true, autocomplete: "email", required: true,
+            class: "mt-1 block w-full rounded-md border border-md-outline px-3 py-2" %>
+    </div>
+
+    <div>
+      <%= f.label :password, class: "block text-sm font-medium" %>
+      <%= f.password_field :password, autocomplete: "new-password", required: true,
+            minlength: @minimum_password_length,
+            "aria-describedby": "password-requirements",
+            class: "mt-1 block w-full rounded-md border border-md-outline px-3 py-2" %>
+      <p id="password-requirements" class="mt-1 text-sm text-md-on-surface-variant">
+        At least <%= @minimum_password_length %> characters.
+      </p>
+    </div>
+
+    <div>
+      <%= f.label :password_confirmation, class: "block text-sm font-medium" %>
+      <%= f.password_field :password_confirmation, autocomplete: "new-password", required: true,
+            minlength: @minimum_password_length,
+            class: "mt-1 block w-full rounded-md border border-md-outline px-3 py-2" %>
+    </div>
+
+    <div class="flex items-start gap-2">
+      <%= f.check_box :legal_assent, class: "mt-1 size-4 rounded border-md-outline" %>
+      <%= f.label :legal_assent, class: "text-sm" do %>
+        I agree to the <%= link_to "Terms of Service", legal_terms_path, class: "underline underline-offset-2", target: "_blank", rel: "noopener" %>
+        and the <%= link_to "Privacy Policy", legal_privacy_path, class: "underline underline-offset-2", target: "_blank", rel: "noopener" %>.
+      <% end %>
+    </div>
+
+    <%= cloudflare_turnstile %>
+
+    <%= f.submit "Sign up", class: "w-full md-button md-button--filled" %>
+  <% end %>
+
+  <%= render "devise/shared/oauth_buttons" %>
+
+  <%= render "devise/shared/links" %>
+</section>
+
+<%= cloudflare_turnstile_script_tag %>

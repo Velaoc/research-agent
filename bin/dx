@@ -1,0 +1,7 @@
+#!/bin/sh
+# Dev-loop runner: executes a command inside the vf-dev container with this
+# repo mounted, a persistent bundle volume, and the vf-pg database reachable.
+exec docker run --rm -v "$(cd "$(dirname "$0")/.." && pwd)":/rails -v vf-bundle:/usr/local/bundle -w /rails --network vf-net \
+  -e DATABASE_URL="${DATABASE_URL:-postgres://postgres:postgres@vf-pg/vela_foundation_test}" \
+  -e RAILS_ENV="${RAILS_ENV:-test}" \
+  vf-dev "$@"

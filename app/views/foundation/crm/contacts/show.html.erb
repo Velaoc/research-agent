@@ -1,0 +1,32 @@
+<% title @contact.display_name %>
+
+<section class="md-page md-stack">
+  <header class="md-actions" style="justify-content: space-between; align-items: flex-start; flex-wrap: wrap;">
+    <div>
+      <p class="md-section__eyebrow">Contact</p>
+      <h1><%= @contact.display_name %></h1>
+      <p class="text-md-on-surface-variant"><%= [ @contact.title, @contact.company&.name ].compact.join(" · ") %></p>
+    </div>
+    <div class="md-actions">
+      <%= link_to "Edit", edit_crm_contact_path(@contact), class: "md-button md-button--tonal" %>
+      <%= button_to "Delete", crm_contact_path(@contact), method: :delete, class: "md-button md-button--text", form: { data: { turbo_confirm: "Delete this contact?" } } %>
+    </div>
+  </header>
+
+  <%= render "foundation/crm/shared/subnav" %>
+
+  <div class="table-scroll">
+    <table>
+      <tbody>
+        <tr><th>Email</th><td><%= @contact.email.presence || "—" %></td></tr>
+        <tr><th>Phone</th><td><%= @contact.phone.presence || "—" %></td></tr>
+        <tr><th>Company</th><td><%= @contact.company ? link_to(@contact.company.name, crm_company_path(@contact.company)) : "—" %></td></tr>
+        <tr><th>Owner</th><td><%= crm_user_label(@contact.owner) %></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <%= render "foundation/crm/shared/timeline",
+        record: @contact, notes: @notes, tasks: @tasks, activities: @activities,
+        note: @note, task: @task, members: @members %>
+</section>

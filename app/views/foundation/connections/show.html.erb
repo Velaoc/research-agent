@@ -1,0 +1,49 @@
+<section class="mx-auto w-full max-w-2xl">
+  <h1 class="text-2xl font-semibold">Connections</h1>
+
+  <p class="mt-3 text-sm text-md-on-surface-variant">
+    Sign-in providers linked to your account.
+    <% if current_user.password_configured? %>
+      You can also sign in with your email and password.
+    <% else %>
+      Your account has no password, so keep at least one provider connected
+      — or set a password through the password-reset flow.
+    <% end %>
+    Manage active sessions on
+    <%= link_to "Your devices", settings_sessions_root_path, class: "underline" %>.
+  </p>
+
+  <%
+    identities_by_provider = @identities.group_by(&:provider)
+    providers = (Foundation::Oauth.configured_providers.map(&:to_s) + identities_by_provider.keys).uniq
+  %>
+
+  <% if providers.empty? %>
+    <p class="mt-6 text-sm text-md-on-surface-variant">
+      No OAuth providers are configured for this installation.
+    </p>
+  <% else %>
+    <ul class="mt-6 divide-y divide-md-outline-variant rounded-md border border-md-outline-variant">
+      <% providers.each do |provider| %>
+        <li class="flex items-center justify-between gap-4 px-4 py-3">
+          <span class="font-medium"><%= Foundation::Oauth.label(provider) %></span>
+
+          <% identities = identities_by_provider.fetch(provider, []) %>
+          <% if identities.any? %>
+            <div class="flex items-center gap-3">
+              <span class="text-sm text-md-on-surface-variant">Connected</span>
+              <% identities.each do |identity| %>
+                <%= button_to "Disconnect", settings_connection_path(identity), method: :delete,
+                      class: "rounded-md border border-md-outline px-3 py-1.5 text-sm hover:bg-md-surface-container" %>
+              <% end %>
+            </div>
+          <% else %>
+            <%= button_to "Connect", omniauth_authorize_path(:user, provider),
+                  data: { turbo: false },
+                  class: "rounded-md border border-md-outline px-3 py-1.5 text-sm hover:bg-md-surface-container" %>
+          <% end %>
+        </li>
+      <% end %>
+    </ul>
+  <% end %>
+</section>

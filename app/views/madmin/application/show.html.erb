@@ -1,0 +1,27 @@
+<% content_for :title, resource.display_name(@record) %>
+
+<header class="header">
+  <h1>
+    <%= link_to resource.friendly_name.pluralize, resource.index_path %>
+    / <%= resource.display_name(@record) %>
+  </h1>
+  <div class="actions">
+    <% resource.member_actions.each do |action| %>
+      <%= instance_exec(@record, &action) %>
+    <% end %>
+  </div>
+</header>
+
+<div class="table-scroll">
+  <table>
+    <tbody>
+      <% resource.attributes.values.each do |attribute| %>
+        <% next unless attribute.field&.visible?(:show) %>
+        <tr>
+          <th class="label"><%= attribute.field.label %></th>
+          <td><%= render partial: attribute.field.to_partial_path("show"), locals: { field: attribute.field, record: @record, resource: resource } %></td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</div>

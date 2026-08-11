@@ -1,0 +1,51 @@
+<section class="mx-auto w-full max-w-2xl">
+  <h1 class="text-2xl font-semibold">Your devices</h1>
+  <p class="mt-3 text-sm text-md-on-surface-variant">
+    Active sessions on your account. Revoking a device signs it out on the next request.
+  </p>
+
+  <% if @sessions.empty? %>
+    <p class="mt-6 text-sm text-md-on-surface-variant">No active devices.</p>
+  <% else %>
+    <ul class="mt-6 divide-y divide-md-outline-variant rounded-md border border-md-outline-variant">
+      <% @sessions.each do |row| %>
+        <% is_current = @current_session && row.id == @current_session.id %>
+        <li class="flex flex-col gap-2 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p class="font-medium">
+              <%= row.device_name.presence || "Unknown device" %>
+              <% if is_current %>
+                <span class="ml-2 rounded-full bg-md-secondary-container px-2 py-0.5 text-xs text-md-on-secondary-container">This device</span>
+              <% end %>
+            </p>
+            <p class="mt-1 text-sm text-md-on-surface-variant">
+              <% if row.location.present? %>
+                <%= row.location %> ·
+              <% end %>
+              Last seen <%= time_ago_in_words(row.last_active_at) %> ago
+            </p>
+          </div>
+          <% unless is_current %>
+            <%= button_to "Revoke", settings_sessions_session_path(row),
+                  method: :delete,
+                  form: { data: { turbo_confirm: "Sign out this device?" } },
+                  class: "rounded-md border border-md-outline px-3 py-1.5 text-sm hover:bg-md-surface-container" %>
+          <% end %>
+        </li>
+      <% end %>
+    </ul>
+
+    <% if @sessions.size > 1 %>
+      <div class="mt-6">
+        <%= button_to "Sign out of all other devices", settings_sessions_others_path,
+              method: :delete,
+              form: { data: { turbo_confirm: "Sign out every other device?" } },
+              class: "rounded-md border border-md-outline px-4 py-2 text-sm hover:bg-md-surface-container" %>
+      </div>
+    <% end %>
+  <% end %>
+
+  <p class="mt-8 text-sm">
+    <%= link_to "Connections", settings_connections_path, class: "underline text-md-on-surface-variant" %>
+  </p>
+</section>
