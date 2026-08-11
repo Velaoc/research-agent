@@ -17,6 +17,7 @@ class User < ApplicationRecord
     dependent: :nullify,
     inverse_of: :user
   # /foundation:module storefront
+  has_many :research_runs, dependent: :destroy, inverse_of: :user
   has_sessions
 
   # Team workspaces (SPEC M4). A personal organization is created right
