@@ -55,6 +55,14 @@ Rails.application.routes.draw do
     mount MissionControl::Jobs::Engine => "/admin/jobs", as: :admin_jobs
   end
 
+  # Research agent (product feature). Runs belong to the signed-in user;
+  # the controller re-checks authorization on every action.
+  resources :research_runs, only: %i[index new create show], path: "research" do
+    collection do
+      get :new
+    end
+  end
+
   # Versioned legal documents (SPEC M2.4).
   get "legal/terms",   to: "foundation/legal#terms",   as: :legal_terms
   get "legal/privacy", to: "foundation/legal#privacy", as: :legal_privacy
