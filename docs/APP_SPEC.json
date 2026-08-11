@@ -1,0 +1,56 @@
+{
+  "name": "Research Agent",
+  "purpose": "An AI research agent app: a signed-in user submits a research question, the agent runs a sequence of steps (plan, search, read, verify, synthesize), and every step plus its result is recorded and rendered as a replayable timeline.",
+  "actors": [
+    "User (signed-in researcher)",
+    "System (agent loop + provider adapter)"
+  ],
+  "entities": [
+    {
+      "name": "ResearchRun",
+      "relationships": [
+        "belongs to User",
+        "has many ResearchSteps",
+        "question, status (running|complete|failed), summary"
+      ]
+    },
+    {
+      "name": "ResearchStep",
+      "relationships": [
+        "belongs to ResearchRun",
+        "name (plan|search|read|verify|synthesize), status (pending|running|complete|failed), input, output, position, duration_ms"
+      ]
+    },
+    {
+      "name": "User",
+      "relationships": [
+        "has many ResearchRuns"
+      ]
+    }
+  ],
+  "workflows": [
+    {
+      "name": "Submit a research question",
+      "description": "Signed-in user submits a question; a ResearchRun is created and the agent executes steps in order, recording each one"
+    },
+    {
+      "name": "Watch the timeline live",
+      "description": "The run page shows steps appearing in real time with status and result as the agent works"
+    },
+    {
+      "name": "Review past runs",
+      "description": "User lists their past runs and opens any completed or failed run to see its full recorded timeline"
+    },
+    {
+      "name": "Swap in a real provider",
+      "description": "Operator sets OPENAI_API_KEY (and optional base URL/model) env vars; the adapter switches from the canned demo provider to the real provider with no code change"
+    }
+  ],
+  "integrations": [
+    {
+      "name": "ai_provider",
+      "demo_adapter": true
+    }
+  ],
+  "seed_demo": "A completed sample research run (\"How does a pulsar keep its spin for billions of years?\") with all five steps populated so the timeline renders fully on first load, plus a demo user."
+}
