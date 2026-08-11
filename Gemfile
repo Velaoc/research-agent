@@ -45,7 +45,7 @@ gem "thruster", require: false
 gem "kamal", "~> 2.12", require: false
 
 # Use Active Storage variants [https://guides.rubyonrails.org/active_storage_overview.html#transforming-images]
-gem "image_processing", "~> 1.2"
+gem "image_processing", "~> 2.0"
 
 # S3-compatible Active Storage (AWS S3, Cloudflare R2, MinIO, …). Apache-2.0.
 # Selected only when ACTIVE_STORAGE_SERVICE names a service that uses it.
