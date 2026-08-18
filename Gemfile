@@ -98,7 +98,7 @@ gem "profitable", "~> 0.6"
 # Foundation: operator-only administration, per-device session tracking, and
 # Solid Queue visibility (SPEC M6). All three are MIT-licensed and support the
 # Rails 8.1 / Ruby 4 foundation runtime.
-gem "madmin", "~> 2.4.0"
+gem "madmin", "~> 2.5.1"
 gem "sessions", "~> 0.2.2"
 gem "mission_control-jobs", "~> 1.1.0"
 
